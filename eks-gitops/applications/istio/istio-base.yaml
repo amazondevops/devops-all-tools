@@ -10,10 +10,10 @@ spec:
   source:
     repoURL: https://github.com/amazondevops/devops-all-tools.git
     targetRevision: HEAD
-    path: eks-gitops/helm/charts/istio/base
+    path: eks-gitops/helm/charts/istio-1.26/base
     helm:
       valueFiles:
-      - eks-gitops/helm/value-store/istio-base/values.yaml
+      - ../../../value-store/istio-base/values.yaml
 
   destination:
     server: https://kubernetes.default.svc
