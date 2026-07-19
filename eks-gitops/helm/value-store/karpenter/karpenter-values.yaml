@@ -75,8 +75,8 @@ initContainers: {}
 #    image: amazon/aws-cli:latest
 #    command: [ 'aws', 'ec2', 'describe-instance-types']
 # -- Node selectors to schedule the pod to nodes with labels.
-nodeSelector:
-  kubernetes.io/os: linux
+# nodeSelector:
+#   kubernetes.io/os: linux
 # -- Affinity rules for scheduling the pod. If an explicit label selector is not provided for pod affinity or pod anti-affinity one will be created from the pod selector labels.
 # affinity:
 #   nodeAffinity:
