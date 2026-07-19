@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: karpenter
+  namespace: argocd
+spec:
+  description: karpenter
+  sourceRepos:
+  - 'https://github.com/amazondevops/devops-all-tools.git'
+  destinations:
+  - namespace: karpenter
+    server: https://kubernetes.default.svc
+  - namespace: kube-system
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  orphanedResources:
+    warn: true

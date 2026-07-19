@@ -8,9 +8,9 @@ metadata:
 spec:
   project: karpenter
   source:
-    repoURL: git@bitbucket.org:junglee_games/dmnd-pkrb-gitops-nprod.git
+    repoURL: https://github.com/amazondevops/devops-all-tools.git
     targetRevision: HEAD
-    path: helm/charts/karpenter
+    path: eks-gitops/helm/charts/karpenter
     helm:
       valueFiles:
       - ../../value-store/karpenter/karpenter-values.yaml

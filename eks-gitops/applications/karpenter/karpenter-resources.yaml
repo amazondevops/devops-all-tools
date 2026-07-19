@@ -8,13 +8,13 @@ metadata:
 spec:
   project: karpenter
   source:
-    repoURL: git@bitbucket.org:junglee_games/dmnd-pkrb-gitops-nprod.git
+    repoURL: https://github.com/amazondevops/devops-all-tools.git
     targetRevision: HEAD
-    path: helm/charts/karpenter-resources
+    path: eks-gitops/helm/charts/karpenter-resources
     helm:
       valueFiles:
       - ../../value-store/karpenter/nodePools.yaml
-      - ../../value-store/karpenter/ec2NodeClasses.yaml
+      - ../../value-store/karpenter/ec2NodeClass.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: karpenter

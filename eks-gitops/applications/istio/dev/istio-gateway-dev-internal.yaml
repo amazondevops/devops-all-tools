@@ -8,12 +8,12 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: git@bitbucket.org:junglee_games/dmnd-pkrb-gitops-nprod.git
+    repoURL: https://github.com/amazondevops/devops-all-tools.git
     targetRevision: HEAD
-    path: helm/charts/istio/gateway
+    path: eks-gitops/helm/charts/istio-1.26/gateway
     helm:
       valueFiles:
-      - ../../value-store/istio-ingress-gateway/pkrb-dev-internal.yaml
+      - ../../../value-store/istio-ingress-gateway/pkrb-dev-internal.yaml
 
   destination:
     server: https://kubernetes.default.svc
