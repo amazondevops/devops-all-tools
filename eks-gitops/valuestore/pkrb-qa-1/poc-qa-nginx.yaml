@@ -1,6 +1,6 @@
 replicaCount: 1
 env: poc-qa-1
-hosted_zone: arrisetoolsprod.internal
+hosted_zone: arrisetoolsprod
 service:
     create: true
     type: NodePort
