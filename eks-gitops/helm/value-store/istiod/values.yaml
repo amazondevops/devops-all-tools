@@ -49,15 +49,15 @@ _internal_defaults_do_not_set:
 
   # affinity: {}
 
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: default
-                operator: In
-                values: 
-                - apps
+  # affinity:
+  #   nodeAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       nodeSelectorTerms:
+  #         - matchExpressions:
+  #             - key: default
+  #               operator: In
+  #               values: 
+  #               - apps
 
   # tolerations: []
   # tolerations: 
