@@ -11,10 +11,9 @@ ec2NodeClasses:
       - id: "subnet-00646c4c7b71d7e24"
       - id: "subnet-09d82a77490fbd360"
       - id: "subnet-0d9222b53e6143433"
-    # Dedicated Karpenter node SG (+ cluster SG) discovered by tag (see karpenter-node-sg.tf / karpenter.tf)
+    # Use the specified security group for Karpenter nodes.
     securityGroupSelectorTerms:
-      - tags:
-          karpenter.sh/discovery: "poc-eks"
+      - id: "sg-057023568063e5e94"
     tags:
       environment: poc
       ManagedBy: karpenter
