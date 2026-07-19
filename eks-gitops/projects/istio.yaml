@@ -1,0 +1,18 @@
+
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: istio
+  namespace: argocd
+spec:
+  description: istio
+  sourceRepos:
+  - 'https://github.com/amazondevops/devops-all-tools.git'
+  destinations:
+  - namespace: istio-system
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  orphanedResources:
+    warn: true
