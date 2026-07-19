@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: incubator-poc-dev-1
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: poc-dev-1
+  source:
+    repoURL: https://github.com/amazondevops/devops-all-tools.git
+    targetRevision: HEAD
+    path: eks-gitops/helm/charts/pkr-config-application
+    helm:
+      valueFiles:
+      - ../../../valuestore/pkrb-env-configs/pkrb-dev-1.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: poc-dev-1
+  syncPolicy:
+    automated: 
+      prune: true 
+      selfHeal: false 
+      allowEmpty: false 
+    syncOptions:     
+    - Validate=false 
+    - CreateNamespace=true 
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    retry:
+      limit: 5 
+      backoff:
+        duration: 5s 
+        factor: 2 
+        maxDuration: 3m 
+

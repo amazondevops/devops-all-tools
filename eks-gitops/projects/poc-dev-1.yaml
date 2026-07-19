@@ -1,0 +1,21 @@
+
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: poc-dev-1
+  namespace: argocd
+spec:
+  description: poc-dev-1
+  sourceRepos:
+  - 'https://github.com/amazondevops/devops-all-tools.git'
+  destinations:
+  - namespace: poc-dev-1
+    server: https://kubernetes.default.svc
+  # the incubator app generates child Application CRs in the argocd namespace
+  - namespace: argocd
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  orphanedResources:
+    warn: true

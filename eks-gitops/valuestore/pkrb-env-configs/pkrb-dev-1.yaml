@@ -1,0 +1,23 @@
+applications:
+- name: poc-dev-nginx
+  namespace: poc-dev-1
+  useSingleRepo: true
+  chart: eks-gitops/helm/charts/rollouts/poker-go-services-config-v1
+  repoURL: 'https://github.com/amazondevops/devops-all-tools.git'
+  repoBranch: HEAD
+  valueFile: ../../../../valuestore/pkrb-dev-1/poc-nginx.yaml    
+  project: poc-dev-1
+
+- name: poc-dev-apache
+  namespace: poc-dev-1
+  useSingleRepo: true
+  chart: eks-gitops/helm/charts/rollouts/poker-go-services-config-v1
+  repoURL: 'https://github.com/amazondevops/devops-all-tools.git'
+  repoBranch: HEAD
+  valueFile: ../../../../valuestore/pkrb-dev-1/poc-apache.yaml 
+  project: poc-dev-1
+
+spec:
+  destination:
+    namespace: poc-dev-1
+    hosted_zone: arrisetoolsprod.internal

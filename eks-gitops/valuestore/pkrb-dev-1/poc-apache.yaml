@@ -1,0 +1,118 @@
+replicaCount: 1
+env: poc-dev-1
+hosted_zone: arrisetoolsprod.internal
+service:
+    create: true
+    type: NodePort
+    port: 80
+    targetPort: 80
+container:
+    name: poc-apache
+    image: httpd
+    env:
+    - name: env
+      value: poc-dev-1
+    #command: [ "./poker_escrow_service"]
+    # command: [ "./poker_escrow_service", "-config", "/dist/pkrb-escrow.json"]
+    terminationGracePeriodSeconds: 60
+    resources:
+      soft:
+        cpu: 100m
+        memory: 256Mi
+      hard:
+        cpu: 1 
+        memory: 1Gi
+        
+rollout:
+    autoPromote: false
+    canaryTraffic: 0
+    stableTraffic: 100
+
+hpa:
+  enable: true
+  minReplica: 2
+  maxReplica: 2
+  cpuUtilization: 70
+  
+Keda:
+  enable: false
+  minReplicas: 2
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 70
+  pollingInterval: 5
+
+virtualservice:
+    create: true
+    gateways: 
+    - "default/istio-gateway-internal-dev"
+    routeName: primary
+
+
+canarySteps:
+  enabled: false
+  steps:
+  - setWeight: 20
+  - pause: {}
+
+livenessProbe:
+    enabled: false
+    tcpSocket:
+      port: 80
+    initialDelaySeconds: 40
+    periodSeconds: 5
+    successThreshold: 1
+    failureThreshold: 2
+
+readinessProbe:
+    enabled: false
+    tcpSocket:
+      port: 80
+    initialDelaySeconds: 40
+    periodSeconds: 5
+    successThreshold: 1
+    failureThreshold: 2
+
+tolerations:
+    - key: scheduler
+      value: karpenter
+      effect: NoSchedule
+
+serviceAccount:
+  # public image, no AWS access needed -> use the namespace default SA
+  name: default
+
+affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: provisoner
+            operator: In
+            values:
+            - poc-dev
+          - key: karpenter.sh/capacity-type
+            operator: In
+            values:
+            - spot
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - "{{ .Values.container.name }}"
+            - key: env
+              operator: In
+              values:
+              - "{{ .Values.env }}"
+          topologyKey: topology.kubernetes.io/zone
+
+configmap:
+  create: false
+
+
+destinationrule:
+  create: true
