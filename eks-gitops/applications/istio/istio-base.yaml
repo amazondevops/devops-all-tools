@@ -8,12 +8,12 @@ metadata:
 spec:
   project: istio
   source:
-    repoURL: git@bitbucket.org:junglee_games/dmnd-pkrb-gitops-nprod.git
+    repoURL: https://github.com/amazondevops/devops-all-tools.git
     targetRevision: HEAD
-    path: helm/charts/istio/base
+    path: eks-gitops/helm/charts/istio/base
     helm:
       valueFiles:
-      - ./values.yaml
+      - eks-gitops/helm/value-store/istio-base/values.yaml
 
   destination:
     server: https://kubernetes.default.svc
