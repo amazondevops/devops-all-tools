@@ -11,9 +11,12 @@ ec2NodeClasses:
       - id: "subnet-00646c4c7b71d7e24"
       - id: "subnet-09d82a77490fbd360"
       - id: "subnet-0d9222b53e6143433"
-    # Use the specified security group for Karpenter nodes.
+    # Requested SG + the EKS cluster SG (sg-01ffda59041ac6b11) so nodes get the
+    # same node <-> control-plane connectivity the managed node group has, and
+    # can register with the cluster.
     securityGroupSelectorTerms:
       - id: "sg-057023568063e5e94"
+      - id: "sg-01ffda59041ac6b11"
     tags:
       environment: poc
       ManagedBy: karpenter
