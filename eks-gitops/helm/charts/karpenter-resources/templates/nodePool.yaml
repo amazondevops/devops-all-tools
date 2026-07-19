@@ -1,34 +1,51 @@
 {{- range .Values.nodePools }}
-apiVersion: karpenter.sh/v1beta1
+apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: {{ .name }}
 spec:
   template:
+    {{- if or .labels .doNotDisruptAnnotation }}
     metadata:
-{{- if .doNotDisruptAnnotation }}
-     annotations:
+      {{- if .doNotDisruptAnnotation }}
+      annotations:
         karpenter.sh/do-not-disrupt: "true"
-{{- end }}
-{{- if .labels }}
-     labels:
-{{ toYaml .labels | indent 6 }}
-{{- end }}
+      {{- end }}
+      {{- if .labels }}
+      labels:
+{{ toYaml .labels | indent 8 }}
+      {{- end }}
+    {{- end }}
     spec:
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: {{ .nodeClassRef }}
+      {{- if .taints }}
       taints:
 {{ toYaml .taints | indent 8 }}
+      {{- end }}
       requirements:
 {{ toYaml .requirements | indent 8 }}
-{{- if .kubelet }}
+      {{- if .expireAfter }}
+      expireAfter: {{ .expireAfter }}
+      {{- end }}
+      {{- if .kubelet }}
       kubelet:
 {{ toYaml .kubelet | indent 8 }}
-{{- end }}
+      {{- end }}
+  {{- if .disruption }}
   disruption:
-{{ toYaml .disruption | indent 6 }}
+{{ toYaml .disruption | indent 4 }}
+  {{- end }}
+  {{- if or .cpuLimits .memoryLimits }}
   limits:
+    {{- if .cpuLimits }}
     cpu: {{ .cpuLimits }}
-    memory:  {{ .memoryLimits }}
+    {{- end }}
+    {{- if .memoryLimits }}
+    memory: {{ .memoryLimits }}
+    {{- end }}
+  {{- end }}
 ---
 {{- end }}

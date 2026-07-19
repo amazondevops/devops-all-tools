@@ -1,83 +1,26 @@
+# Single EC2NodeClass shared by both NodePools (poc-dev / poc-qa).
+# AL2023, poc-eks private subnets, dedicated Karpenter node SG, node IAM role.
 ec2NodeClasses:
-  - name: pkrb-dev
-    tags:
-      environment: nprod
-      Application: Poker
-      CostCenter: "PokerB2B"
-      Backup: "False"
-      Owner: "Diamond"
+  - name: poc
+    role: "KarpenterNodeRole-poc-eks"
+    # AL2023, always the latest EKS-optimized AMI for the cluster's k8s version.
+    amiSelectorTerms:
+      - alias: al2023@latest
+    # poc-eks private subnets (eu-west-1a/b/c)
     subnetSelectorTerms:
-      - id: "subnet-089f9dea824896f5a"
-      - id: "subnet-0bd9e710b44446de4"
-      - id: "subnet-04c59ab838d738079"
+      - id: "subnet-00646c4c7b71d7e24"
+      - id: "subnet-09d82a77490fbd360"
+      - id: "subnet-0d9222b53e6143433"
+    # Dedicated Karpenter node SG (+ cluster SG) discovered by tag (see karpenter-node-sg.tf / karpenter.tf)
     securityGroupSelectorTerms:
-      - id: "sg-0ebe6a10d9c56df6e"
-    amiID: "ami-0ff1619e0e04695ea"
-    role: "Karpenter-dmnd-pkrb-dev-aps1-eks-20250605121953794800000005"
-    amiFamily: "AL2023"
+      - tags:
+          karpenter.sh/discovery: "poc-eks"
+    tags:
+      environment: poc
+      ManagedBy: karpenter
     blockDeviceMappings:
       - deviceName: /dev/xvda
         ebs:
           volumeSize: 20Gi
           volumeType: gp3
           deleteOnTermination: true
-    userData: |-
-      #!/bin/bash
-      mkdir -p /consul-data
-      chmod -R 777 /consul-data
-
-
-  - name: rum-dev
-    tags:
-      environment: nprod
-      Application: Poker
-      CostCenter: "PokerB2B"
-      Backup: "False"
-      Owner: "Diamond"
-    subnetSelectorTerms:
-      - id: "subnet-089f9dea824896f5a"
-      - id: "subnet-0bd9e710b44446de4"
-      - id: "subnet-04c59ab838d738079"
-    securityGroupSelectorTerms:
-      - id: "sg-0ebe6a10d9c56df6e"
-    amiID: "ami-0ff1619e0e04695ea"
-    role: "Karpenter-dmnd-pkrb-dev-aps1-eks-20250605121953794800000005"
-    amiFamily: "AL2023"
-    blockDeviceMappings:
-      - deviceName: /dev/xvda
-        ebs:
-          volumeSize: 20Gi
-          volumeType: gp3
-          deleteOnTermination: true
-    userData: |-
-      #!/bin/bash
-      mkdir -p /consul-data
-      chmod -R 777 /consul-data
-
-  
-  - name: aud-dev
-    tags:
-      environment: nprod
-      Application: Poker
-      CostCenter: "PokerB2B"
-      Backup: "False"
-      Owner: "Diamond"
-    subnetSelectorTerms:
-      - id: "subnet-089f9dea824896f5a"
-      - id: "subnet-0bd9e710b44446de4"
-      - id: "subnet-04c59ab838d738079"
-    securityGroupSelectorTerms:
-      - id: "sg-0ebe6a10d9c56df6e"
-    amiID: "ami-0ff1619e0e04695ea"
-    role: "Karpenter-dmnd-pkrb-dev-aps1-eks-20250605121953794800000005"
-    amiFamily: "AL2023"
-    blockDeviceMappings:
-      - deviceName: /dev/xvda
-        ebs:
-          volumeSize: 20Gi
-          volumeType: gp3
-          deleteOnTermination: true
-    userData: |-
-      #!/bin/bash
-      mkdir -p /consul-data
-      chmod -R 777 /consul-data

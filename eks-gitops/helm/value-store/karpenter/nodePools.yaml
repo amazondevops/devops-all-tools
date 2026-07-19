@@ -1,119 +1,70 @@
+# Two NodePools for the POC, both backed by the single "poc" EC2NodeClass:
+#   poc-dev -> spot instances
+#   poc-qa  -> on-demand instances
+# Target a pool from a workload with nodeSelector: { pool: poc-dev | poc-qa }.
 nodePools:
-- name: pkrb-dev
-  taints:
-    - key: scheduler
-      value: karpenter
-      effect: NoSchedule
-  labels:
-    provisioner: karpenter-pkrb-dev
-  nodeClassRef:
-    name: pkrb-dev
-    group: karpenter.k8s.aws
-    kind: EC2NodeClass
-  requirements:
-    - key: "karpenter.k8s.aws/instance-family"
-      operator: In
-      values: ["c6a","m6a","c5a","m5a"]
-    - key: kubernetes.io/os
-      operator: In
-      values: ["linux"]
-    - key: karpenter.k8s.aws/instance-generation
-      operator: Gt
-      values: ["4"]
-    - key: "karpenter.sh/capacity-type"
-      operator: In
-      values: ["spot","on-demand"]
-    - key: "karpenter.k8s.aws/instance-cpu"
-      operator: In
-      values: ["4", "8", "16", "32"]
-    - key: "kubernetes.io/arch"
-      operator: In
-      values: ["amd64"]
-    - key: "topology.kubernetes.io/zone"
-      operator: In
-      values: ["ap-south-1a","ap-south-1b","ap-south-1c"]
-  cpuLimits: 80
-  memoryLimits: 160G
-  disruption:
-    consolidateAfter: 1h
-    consolidationPolicy: WhenEmptyOrUnderutilized
+  - name: poc-dev
+    labels:
+      pool: poc-dev
+      environment: dev
+      # "provisoner" key (mis-spelled) kept to match existing workload
+      # nodeAffinity; value standardized to the pool name.
+      provisoner: poc-dev
+    taints:
+      - key: scheduler
+        value: karpenter
+        effect: NoSchedule
+    nodeClassRef: poc
+    requirements:
+      - key: "karpenter.sh/capacity-type"
+        operator: In
+        values: ["spot"]
+      - key: "kubernetes.io/arch"
+        operator: In
+        values: ["amd64"]
+      - key: "kubernetes.io/os"
+        operator: In
+        values: ["linux"]
+      - key: "node.kubernetes.io/instance-type"
+        operator: In
+        values: ["t3.small", "t3.medium", "t3a.small", "t3a.medium"]
+      - key: "topology.kubernetes.io/zone"
+        operator: In
+        values: ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+    disruption:
+      consolidationPolicy: WhenEmptyOrUnderutilized
+      consolidateAfter: 1m
+    cpuLimits: 20
+    memoryLimits: 40Gi
 
-
-- name: rum-dev
-  taints:
-    - key: scheduler
-      value: karpenter
-      effect: NoSchedule
-  labels:
-    provisioner: karpenter-rum-dev
-  nodeClassRef:
-    name: rum-dev
-    group: karpenter.k8s.aws
-    kind: EC2NodeClass
-  requirements:
-    - key: "karpenter.k8s.aws/instance-family"
-      operator: In
-      values: ["c6a","m6a","c5a","m5a"]
-    - key: kubernetes.io/os
-      operator: In
-      values: ["linux"]
-    - key: karpenter.k8s.aws/instance-generation
-      operator: Gt
-      values: ["4"]
-    - key: "karpenter.sh/capacity-type"
-      operator: In
-      values: ["spot","on-demand"]
-    - key: "karpenter.k8s.aws/instance-cpu"
-      operator: In
-      values: ["4", "8", "16", "32"]
-    - key: "kubernetes.io/arch"
-      operator: In
-      values: ["amd64"]
-    - key: "topology.kubernetes.io/zone"
-      operator: In
-      values: ["ap-south-1a","ap-south-1b","ap-south-1c"]
-  cpuLimits: 30
-  memoryLimits: 160G
-  disruption:
-    consolidateAfter: 1h
-    consolidationPolicy: WhenEmptyOrUnderutilized
-
-
-- name: aud-dev
-  taints:
-    - key: scheduler
-      value: karpenter
-      effect: NoSchedule
-  labels:
-    provisioner: karpenter-aud-dev
-  nodeClassRef:
-    name: aud-dev
-    group: karpenter.k8s.aws
-    kind: EC2NodeClass
-  requirements:
-    - key: "karpenter.k8s.aws/instance-family"
-      operator: In
-      values: ["c6a","m6a","c5a","m5a"]
-    - key: kubernetes.io/os
-      operator: In
-      values: ["linux"]
-    - key: karpenter.k8s.aws/instance-generation
-      operator: Gt
-      values: ["4"]
-    - key: "karpenter.sh/capacity-type"
-      operator: In
-      values: ["spot","on-demand"]
-    - key: "karpenter.k8s.aws/instance-cpu"
-      operator: In
-      values: ["4", "8", "16", "32"]
-    - key: "kubernetes.io/arch"
-      operator: In
-      values: ["amd64"]
-    - key: "topology.kubernetes.io/zone"
-      operator: In
-      values: ["ap-south-1a","ap-south-1b","ap-south-1c"]
-  cpuLimits: 30
-  memoryLimits: 160G
-  disruption:
-    consolidateAfter: 1h
-    consolidationPolicy: WhenEmptyOrUnderutilized
+  - name: poc-qa
+    labels:
+      pool: poc-qa
+      environment: qa
+      provisoner: poc-qa
+    taints:
+      - key: scheduler
+        value: karpenter
+        effect: NoSchedule
+    nodeClassRef: poc
+    requirements:
+      - key: "karpenter.sh/capacity-type"
+        operator: In
+        values: ["on-demand"]
+      - key: "kubernetes.io/arch"
+        operator: In
+        values: ["amd64"]
+      - key: "kubernetes.io/os"
+        operator: In
+        values: ["linux"]
+      - key: "node.kubernetes.io/instance-type"
+        operator: In
+        values: ["t3.small", "t3.medium", "t3a.small", "t3a.medium"]
+      - key: "topology.kubernetes.io/zone"
+        operator: In
+        values: ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+    disruption:
+      consolidationPolicy: WhenEmptyOrUnderutilized
+      consolidateAfter: 1m
+    cpuLimits: 20
+    memoryLimits: 40Gi
