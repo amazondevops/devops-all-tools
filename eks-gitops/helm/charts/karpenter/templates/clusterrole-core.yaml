@@ -30,35 +30,24 @@ metadata:
 rules:
   # Read
   - apiGroups: ["karpenter.sh"]
-    resources: ["provisioners", "provisioners/status", "machines", "machines/status"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: ["karpenter.sh"]
     resources: ["nodepools", "nodepools/status", "nodeclaims", "nodeclaims/status"]
     verbs: ["get", "list", "watch"]
   - apiGroups: [""]
     resources: ["pods", "nodes", "persistentvolumes", "persistentvolumeclaims", "replicationcontrollers", "namespaces"]
     verbs: ["get", "list", "watch"]
   - apiGroups: ["storage.k8s.io"]
-    resources: ["storageclasses", "csinodes"]
+    resources: ["storageclasses", "csinodes", "volumeattachments"]
     verbs: ["get", "watch", "list"]
   - apiGroups: ["apps"]
     resources: ["daemonsets", "deployments", "replicasets", "statefulsets"]
     verbs: ["list", "watch"]
-{{- if .Values.webhook.enabled }}
-  - apiGroups: ["admissionregistration.k8s.io"]
-    resources: ["validatingwebhookconfigurations", "mutatingwebhookconfigurations"]
-    verbs: ["get", "watch", "list"]
-{{- end }}
   - apiGroups: ["policy"]
     resources: ["poddisruptionbudgets"]
     verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", list, "watch"]
   # Write
-  - apiGroups: ["karpenter.sh"]
-    resources: ["machines", "machines/status"]
-    verbs: ["create", "delete", "update", "patch"]
-  - apiGroups: ["karpenter.sh"]
-    resources: ["provisioners", "provisioners/status"]
-    verbs: ["update", "patch"]
   - apiGroups: ["karpenter.sh"]
     resources: ["nodeclaims", "nodeclaims/status"]
     verbs: ["create", "delete", "update", "patch"]
@@ -70,16 +59,13 @@ rules:
     verbs: ["create", "patch"]
   - apiGroups: [""]
     resources: ["nodes"]
-    verbs: ["create", "patch", "delete"]
+    verbs: ["patch", "delete", "update"]
   - apiGroups: [""]
     resources: ["pods/eviction"]
     verbs: ["create"]
-{{- if .Values.webhook.enabled }}
-  - apiGroups: ["admissionregistration.k8s.io"]
-    resources: ["validatingwebhookconfigurations"]
-    verbs: ["update"]
-    resourceNames: ["validation.webhook.karpenter.sh", "validation.webhook.config.karpenter.sh"]
-{{- end }}
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["delete"]
   {{- with .Values.additionalClusterRoleRules -}}
   {{ toYaml . | nindent 2 }}
   {{- end -}}

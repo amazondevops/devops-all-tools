@@ -12,6 +12,9 @@ additionalAnnotations: {}
 imagePullPolicy: IfNotPresent
 # -- Image pull secrets for Docker images.
 imagePullSecrets: []
+service:
+  # -- Additional annotations for the Service.
+  annotations: {}
 serviceAccount:
   # -- Specifies if a ServiceAccount should be created.
   create: true
@@ -27,7 +30,9 @@ serviceMonitor:
   enabled: false
   # -- Additional labels for the ServiceMonitor.
   additionalLabels: {}
-  # -- Endpoint configuration for the ServiceMonitor.
+  # -- Configuration on `http-metrics` endpoint for the ServiceMonitor.
+  # Not to be used to add additional endpoints.
+  # See the Prometheus operator documentation for configurable fields https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#endpoint
   endpointConfig: {}
 # -- Number of replicas.
 replicas: 2
@@ -44,6 +49,9 @@ podAnnotations: {}
 podDisruptionBudget:
   name: karpenter
   maxUnavailable: 1
+# -- SecurityContext for the pod.
+podSecurityContext:
+  fsGroup: 65532
 # -- PriorityClass name for the pod.
 priorityClassName: system-cluster-critical
 # -- Override the default termination grace period for the pod.
@@ -51,13 +59,20 @@ terminationGracePeriodSeconds:
 # -- Bind the pod to the host network.
 # This is required when using a custom CNI.
 hostNetwork: false
+# -- Specify which Kubernetes scheduler should dispatch the pod.
+schedulerName: default-scheduler
 # -- Configure the DNS Policy for the pod
-dnsPolicy: Default
+dnsPolicy: ClusterFirst
 # -- Configure DNS Config for the pod
 dnsConfig: {}
 #  options:
 #    - name: ndots
 #      value: "1"
+# -- add additional initContainers to run before karpenter container starts
+initContainers: {}
+#  - name: list-ec2-instances
+#    image: amazon/aws-cli:latest
+#    command: [ 'aws', 'ec2', 'describe-instance-types']
 # -- Node selectors to schedule the pod to nodes with labels.
 nodeSelector:
   kubernetes.io/os: linux
@@ -67,8 +82,6 @@ affinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
         - matchExpressions:
-            - key: karpenter.sh/provisioner-name
-              operator: DoesNotExist
             - key: karpenter.sh/nodepool
               operator: DoesNotExist
   podAntiAffinity:
@@ -78,7 +91,7 @@ affinity:
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone
-    whenUnsatisfiable: ScheduleAnyway
+    whenUnsatisfiable: DoNotSchedule
 # -- Tolerations to allow the pod to be scheduled to nodes with taints.
 tolerations:
   - key: CriticalAddonsOnly
@@ -94,13 +107,15 @@ extraVolumes: []
 #         expirationSeconds: 86400
 #         path: token
 controller:
+  # -- Distinguishing container name (containerName: karpenter-controller).
+  containerName: controller
   image:
     # -- Repository path to the controller image.
     repository: public.ecr.aws/karpenter/controller
     # -- Tag of the controller image.
-    tag: v0.32.0
+    tag: 1.4.0
     # -- SHA256 digest of the controller image.
-    digest: sha256:92f977a6a9d981155b5404f830a5e7fcf7fbd5ba0cadd0ac66a062de77c036b5
+    digest: sha256:e39215600820529c25a119b95f7431dcc103834766426b2beb48f87fa87555bb
   # -- Additional environment variables for the controller pod.
   env: []
   # - name: AWS_REGION
@@ -130,44 +145,20 @@ controller:
   sidecarVolumeMounts: []
   metrics:
     # -- The container port to use for metrics.
-    port: 8000
+    port: 8080
   healthProbe:
     # -- The container port to use for http health probe.
     port: 8081
-webhook:
-  # -- Whether to enable the webhooks and webhook permissions.
-  enabled: true
-  # -- The container port to use for the webhook.
-  port: 8443
-  metrics:
-    # -- The container port to use for webhook metrics.
-    port: 8001
-# -- Global log level
-logLevel: debug
-# -- Log configuration (Deprecated: Logging configuration will be dropped by v1, use logLevel instead)
-logConfig:
-  # -- Whether to enable provisioning and mounting the log ConfigMap
-  enabled: true
-  # -- Log outputPaths - defaults to stdout only
-  outputPaths:
-    - stdout
-  # -- Log errorOutputPaths - defaults to stderr only
-  errorOutputPaths:
-    - stderr
-  # -- Log encoding - defaults to json - must be one of 'json', 'console'
-  logEncoding: json
-  # -- Component-based log configuration
-  logLevel:
-    # -- Global log level, defaults to 'debug'
-    global: debug
-    # -- Controller log level, defaults to 'debug'
-    controller: debug
-    # -- Error log level, defaults to 'error'
-    webhook: error
+# -- Global log level, defaults to 'info'
+logLevel: info
+# -- Log outputPaths - defaults to stdout only
+logOutputPaths:
+  - stdout
+# -- Log errorOutputPaths - defaults to stderr only
+logErrorOutputPaths:
+  - stderr
 # -- Global Settings to configure Karpenter
 settings:
-  # -- AWS-specific settings (Deprecated: The AWS block inside of settings was flattened into settings)
-  aws: {}
   # -- The maximum length of a batch window. The longer this is, the more pods we can consider for provisioning at one
   # time which usually results in fewer but larger nodes.
   batchMaxDuration: 10s
@@ -175,10 +166,9 @@ settings:
   # faster than this time, the batching window will be extended up to the maxDuration. If they arrive slower, the pods
   # will be batched separately.
   batchIdleDuration: 1s
-  # -- Role to assume for calling AWS services.
-  assumeRoleARN: ""
-  # -- Duration of assumed credentials in minutes. Default value is 15 minutes. Not used unless aws.assumeRoleARN set.
-  assumeRoleDuration: 15m
+  # -- How the Karpenter scheduler should treat preferences. Preferences include preferredDuringSchedulingIgnoreDuringExecution
+  # node and pod affinities/anti-affinities and ScheduleAnyways topologySpreadConstraints. Can be one of 'Ignore' and 'Respect'
+  preferencePolicy: Respect
   # -- Cluster CA bundle for TLS configuration of provisioned nodes. If not set, this is taken from the controller's TLS configuration for the API server.
   clusterCABundle: ""
   # -- Cluster name.
@@ -188,9 +178,12 @@ settings:
   # -- If true then assume we can't reach AWS services which don't have a VPC endpoint
   # This also has the effect of disabling look-ups to the AWS pricing endpoint
   isolatedVPC: false
-  # -- The VM memory overhead as a percent that will be subtracted from the total memory for all instance types
+  # Marking this true means that your cluster is running with an EKS control plane and Karpenter should attempt to discover cluster details from the DescribeCluster API
+  eksControlPlane: false
+  # -- The VM memory overhead as a percent that will be subtracted from the total memory for all instance types. The value of `0.075` equals to 7.5%.
   vmMemoryOverheadPercent: 0.075
-  # -- interruptionQueue is disabled if not specified. Enabling interruption handling may
+  # -- Interruption queue is the name of the SQS queue used for processing interruption events from EC2
+  # Interruption handling is disabled if not specified. Enabling interruption handling may
   # require additional permissions on the controller service account. Additional permissions are outlined in the docs.
   interruptionQueue: ""
   # -- Reserved ENIs are not included in the calculations for max-pods or kube-reserved
@@ -199,7 +192,12 @@ settings:
   # -- Feature Gate configuration values. Feature Gates will follow the same graduation process and requirements as feature gates
   # in Kubernetes. More information here https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates/#feature-gates-for-alpha-or-beta-features
   featureGates:
-    # -- drift is in ALPHA and is disabled by default.
-    # Setting drift to true enables the drift disruption method to watch for drift between currently deployed nodes
-    # and the desired state of nodes set in provisioners and node templates
-    drift: false
+    # -- nodeRepair is ALPHA and is disabled by default.
+    # Setting this to true will enable node repair.
+    nodeRepair: false
+    # -- reservedCapacity is ALPHA and is disabled by default.
+    # Setting this will enable native on-demand capacity reservation support.
+    reservedCapacity: false
+    # -- spotToSpotConsolidation is ALPHA and is disabled by default.
+    # Setting this to true will enable spot replacement consolidation for both single and multi-node consolidation.
+    spotToSpotConsolidation: false
