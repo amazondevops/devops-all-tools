@@ -13,7 +13,7 @@ spec:
     path: eks-gitops/helm/charts/istio-1.26/gateway
     helm:
       valueFiles:
-      - ../../../value-store/istio-ingress-gateway/pkrb-nprod-internal.yaml
+      - ../../../value-store/istio-gateway/istio-internal-gateways.yaml
 
   destination:
     server: https://kubernetes.default.svc
