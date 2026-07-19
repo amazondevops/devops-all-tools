@@ -13,8 +13,8 @@ metadata:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
     alb.ingress.kubernetes.io/load-balancer-name: istio-internal-primary-alb-dev
     alb.ingress.kubernetes.io/scheme: internal
-    alb.ingress.kubernetes.io/subnets: subnet-089f9dea824896f5a,subnet-04c59ab838d738079,subnet-0bd9e710b44446de4
-    alb.ingress.kubernetes.io/tags: CostCenter=PokerB2B
+    alb.ingress.kubernetes.io/subnets: subnet-00646c4c7b71d7e24,subnet-09d82a77490fbd360,subnet-0d9222b53e6143433
+    alb.ingress.kubernetes.io/tags: CostCenter=Poc
     alb.ingress.kubernetes.io/target-type: instance
     kubernetes.io/ingress.class: alb
 spec:

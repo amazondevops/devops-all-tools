@@ -8,12 +8,19 @@ spec:
     name: ''
     namespace: istio-system
     server: 'https://kubernetes.default.svc'
-  source:
-    path: applications/manifest/ingress
-    repoURL: 'git@bitbucket.org:junglee_games/dmnd-pkrb-gitops-nprod.git'
-    targetRevision: HEAD
-    directory:
-      include: alb-ingres-nprod-internal.yaml
+  sources:
+    # 1) Internal ALB Ingress (namespace: istio-system in the manifest)
+    - repoURL: 'https://github.com/amazondevops/devops-all-tools.git'
+      targetRevision: HEAD
+      path: eks-gitops/helm/value-store/istio-ingress-alb
+      directory:
+        include: istio-internal-ingress-alb.yaml
+    # 2) Internal Istio Gateway (namespace: default in the manifest)
+    - repoURL: 'https://github.com/amazondevops/devops-all-tools.git'
+      targetRevision: HEAD
+      path: eks-gitops/helm/value-store/istio-gw
+      directory:
+        include: istio-internal-gateways.yaml
   project: istio
   syncPolicy:
     automated:
