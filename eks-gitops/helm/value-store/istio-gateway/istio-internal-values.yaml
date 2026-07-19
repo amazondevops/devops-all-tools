@@ -117,15 +117,15 @@ _internal_defaults_do_not_set:
 
   topologySpreadConstraints: []
 
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-              - key: default
-                operator: In
-                values: 
-                - apps
+  # affinity:
+  #   nodeAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       nodeSelectorTerms:
+  #         - matchExpressions:
+  #             - key: default
+  #               operator: In
+  #               values: 
+  #               - apps
 
   # If specified, the gateway will act as a network gateway for the given network.
   networkGateway: ""
