@@ -1,0 +1,142 @@
+# replicaCount: 0
+# env: hzt-prod
+# service:
+#     type: NodePort
+#     port: 8090
+#     targetPort: 8090
+# container:
+#     annotations:
+#       traffic.sidecar.istio.io/includeOutboundIPRanges: "172.25.128.0/17"
+#     name: beta-league
+#     image: 325440212115.dkr.ecr.ap-south-1.amazonaws.com/hzt-league-service:inf-62d1a898cced3a80a13be90a83be9428d8991a6c
+#     env:
+#     - name: JAR_NAME
+#       value: target/league_service.jar
+#     - name: ENV_NAME
+#       value: hzt-prod
+#     - name: JAVA_OPTS
+#       value: "-javaagent:/home/dockeruser/newrelic/newrelic.jar -Xms2048m -Xmx2048m -Dspring.profiles.active=hzt-prod"
+#     - name: NEW_RELIC_APP_NAME
+#       value: "{{ .Values.env }}-{{ .Values.container.name }}"
+#     - name: NEW_RELIC_LICENSE_KEY
+#       valueFrom:
+#           secretKeyRef:
+#             name: newrelic-key
+#             key: license-key
+#     resources:   
+#     - name: NEW_RELIC_LICENSE_KEY
+#       valueFrom:
+#           secretKeyRef:
+#             name: newrelic-key
+#             key: license-key
+#     resources:            
+#       soft:
+#         cpu: 4000m
+#         memory: 4G
+#       hard:
+#         cpu: 5000m 
+#         memory: 4G
+# volumeMounts:
+#   runfile:
+#     mountPath: /home/dockeruser/run.sh
+#     subPath: run.sh
+
+# volumes:
+#   runfile: 
+#     name: runjavash
+
+        
+# rollout:
+#     autoPromote: false
+#     canaryTraffic: 0
+#     stableTraffic: 100
+
+# hpa:
+#   minReplica: 1
+#   maxReplica: 1
+#   cpuUtilization: 80
+
+# virtualservice:
+#     domains:
+#     - beta-league-hzt-prod.howzat.com
+#     gateways: 
+#     - "default/internal-default-gateway"
+#     routeName: primary
+
+# # serviceAccount:
+# #     name: hzt-common-iam-access-sa
+
+# canarySteps:
+#   enabled: true
+#   steps:
+#   - setWeight: 20
+#   - pause: {}
+
+# tolerations:
+#   - key: cpuopt
+#     value: "true"
+#     effect: NoSchedule
+
+# affinity:
+#     nodeAffinity:
+#       requiredDuringSchedulingIgnoredDuringExecution:
+#         nodeSelectorTerms:
+#         - matchExpressions:
+#           - key: nodegroup-type
+#             operator: In
+#             values:
+#             - cpuopt
+#     podAntiAffinity:
+#       preferredDuringSchedulingIgnoredDuringExecution:
+#       - weight: 100
+#         podAffinityTerm:
+#           labelSelector:
+#             matchExpressions:
+#             - key: app
+#               operator: In
+#               values:
+#               - "{{ .Values.container.name }}"
+#             - key: env
+#               operator: In
+#               values:
+#               - "{{ .Values.env }}"
+#           topologyKey: topology.kubernetes.io/zone
+
+# livenessProbe:
+#     enabled: true
+#     tcpSocket:
+#       port: 8090
+#     initialDelaySeconds: 40
+#     periodSeconds: 5
+#     successThreshold: 1
+#     failureThreshold: 2
+
+# readinessProbe:
+#     enabled: true
+#     tcpSocket:
+#       port: 8090
+#     initialDelaySeconds: 40
+#     periodSeconds: 5
+#     successThreshold: 1
+#     failureThreshold: 2
+
+# ## Enable = true if we want to add special path 
+# ## on public domains
+# ## add all the value under map Match
+# PublicVirtualService:
+#     enabled: true
+#     routeName: pubrimary
+#     gateways:
+#     - "default/internal-public-gateway"
+#     - "default/internal-public-gateway2"
+#     domains:
+#     - beta-league.howzat.com
+#     - beta1-league.howzat.com
+#     match:
+#     - uri:
+#         prefix: "/fm/api/si/webhook/"
+#     - method:
+#         exact: POST
+#     - headers:
+#         end-user:
+#           exact: jason

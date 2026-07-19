@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: istio-gateway-dev-external
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: git@bitbucket.org:junglee_games/dmnd-pkrb-gitops-nprod.git
+    targetRevision: HEAD
+    path: helm/charts/istio/gateway
+    helm:
+      valueFiles:
+      - ../../value-store/istio-ingress-gateway/pkrb-dev-external.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: istio-system
+
+  syncPolicy:
+    automated: 
+      prune: true 
+      selfHeal: false 
+      allowEmpty: false 
+    syncOptions:     
+    - Validate=false 
+    - CreateNamespace=true 
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    retry:
+      limit: 5 
+      backoff:
+        duration: 5s 
+        factor: 2 
+        maxDuration: 3m 

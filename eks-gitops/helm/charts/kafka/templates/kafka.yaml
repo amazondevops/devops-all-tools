@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  labels:
+    app: kafka-app
+spec:
+  serviceName: {{ .Values.serviceName }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: kafka-app
+  template:
+    metadata:
+      labels:
+        app: kafka-app
+    spec:
+      containers:
+        - name: kafka-container
+          image: {{ .Values.container.image }}
+          ports:
+            - containerPort: {{ .Values.container.ports.client }}
+            - containerPort: {{ .Values.container.ports.gossip }}
+          env:
+            - name: REPLICAS
+              value: '{{ .Values.container.env.REPLICAS }}'
+            - name: SERVICE
+              value: {{ .Values.container.env.SERVICE }}
+            - name: NAMESPACE
+              value: {{ .Values.container.env.NAMESPACE }} 
+            - name: SHARE_DIR
+              value: {{ .Values.container.env.SHARE_DIR }}
+            - name: CLUSTER_ID
+              value: {{ .Values.container.env.CLUSTER_ID }}
+            - name: DEFAULT_REPLICATION_FACTOR
+              value: '{{ .Values.container.env.DEFAULT_REPLICATION_FACTOR }}'
+            - name: DEFAULT_MIN_INSYNC_REPLICAS
+              value: '{{ .Values.container.env.DEFAULT_MIN_INSYNC_REPLICAS }}'
+          volumeMounts:
+            - name: data
+              mountPath: /mnt/kafka
+          resources:
+            requests:
+              cpu: {{ .Values.container.resources.requests.cpu }}
+              memory: {{ .Values.container.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.container.resources.limits.cpu }}
+              memory: {{ .Values.container.resources.limits.memory }}
+          terminationGracePeriodSeconds: 360
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              {{- range .Values.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms }}
+              - matchExpressions:
+                  {{- range .matchExpressions }}
+                  - key: {{ .key }}
+                    operator: {{ .operator }}
+                    values:
+                      {{- range .values }}
+                      - {{ . }}
+                      {{- end }}
+                  {{- end }}
+              {{- end }}
+      tolerations:
+        {{- range .Values.tolerations }}
+        - key: {{ .key }}
+          value: {{ .value }}
+          effect: {{ .effect }}
+        {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: 
+          - {{ .Values.volumeClaimTemplates.accessModes }}
+        resources:
+          requests:
+            storage: {{ .Values.volumeClaimTemplates.resources.requests.storage }}

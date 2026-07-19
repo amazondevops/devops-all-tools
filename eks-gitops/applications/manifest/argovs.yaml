@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: argocd-vs
+  namespace: argocd
+spec:
+  gateways:
+  - "mesh"
+  - "istio-system/pkrb-nprod-gateway-internal" # Name of your internal Istio gateway
+  hosts:
+  - argo.dmnd-pkrb-dev-1.int
+  http:
+  - match:
+    - uri:
+        prefix: / # Match all paths
+    route:
+    - destination:
+        host: argocd-server.argocd.svc.cluster.local
+        port:
+          number: 80
+

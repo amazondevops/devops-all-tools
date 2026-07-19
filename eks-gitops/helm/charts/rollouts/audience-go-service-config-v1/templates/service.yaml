@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+{{- toYaml .Values.app | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+{{- toYaml .Values.service.ports | nindent 4 }}
+  selector:
+{{- toYaml .Values.app | nindent 4 }}

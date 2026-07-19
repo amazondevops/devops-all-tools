@@ -1,0 +1,572 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  data:
+    filter-kubernetes.conf: |-
+      [FILTER]
+          Name                kubernetes
+          Match               carrom.*
+          Kube_URL            https://kubernetes.default.svc:443
+          Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+          Kube_Tag_Prefix     carrom.var.log.containers.
+          Merge_Log           off
+          Merge_Log_Key       log_processed
+          K8S-Logging.Exclude Off
+          Labels              On
+          Annotations         off
+          K8S-Logging.Parser  On
+      [FILTER]
+          Name                kubernetes
+          Match               tournament.*
+          Kube_URL            https://kubernetes.default.svc:443
+          Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+          Kube_Tag_Prefix     tournament.var.log.containers.
+          Merge_Log           off
+          Merge_Log_Key       log_processed
+          K8S-Logging.Exclude Off
+          Labels              On
+          Annotations         off
+          K8S-Logging.Parser  Off
+      [FILTER]
+          Name                kubernetes
+          Match               poker.*
+          Kube_URL            https://kubernetes.default.svc:443
+          Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+          Kube_Tag_Prefix     poker.var.log.containers.
+          Merge_Log           off
+          Merge_Log_Key       log_processed
+          K8S-Logging.Exclude Off
+          Labels              On
+          Annotations         off
+          K8S-Logging.Parser  On
+      [FILTER]
+          Name                kubernetes
+          Match               rumble.*
+          Kube_URL            https://kubernetes.default.svc:443
+          Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+          Kube_Tag_Prefix     rumble.var.log.containers.
+          Merge_Log           off
+          Merge_Log_Key       log_processed
+          K8S-Logging.Exclude Off
+          Labels              On
+          Annotations         off
+          K8S-Logging.Parser  off
+      [FILTER]
+          Name                kubernetes
+          Match               ludo.*
+          Kube_URL            https://kubernetes.default.svc:443
+          Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+          Kube_Tag_Prefix     ludo.var.log.containers.
+          Merge_Log           off
+          Merge_Log_Key       log_processed
+          K8S-Logging.Exclude Off
+          Labels              On
+          Annotations         off
+          K8S-Logging.Parser  off
+      [FILTER]
+          Name                kubernetes
+          Match               kube.*
+          Kube_URL            https://kubernetes.default.svc:443
+          Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+          Kube_Tag_Prefix     kube.var.log.containers.
+          Merge_Log           On
+          Merge_Log_Key       log_processed
+          K8S-Logging.Parser  On
+          K8S-Logging.Exclude Off
+      [FILTER]
+          Name                kubernetes
+          Match               teenpatti.*
+          Kube_URL            https://kubernetes.default.svc:443
+          Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+          Kube_Tag_Prefix     teenpatti.var.log.containers.
+          Merge_Log           off
+          Merge_Log_Key       log_processed
+          K8S-Logging.Exclude Off
+          Labels              On
+          Annotations         off
+          K8S-Logging.Parser  On
+      [FILTER]
+          Name                kubernetes
+          Match               howzat.*
+          Kube_URL            https://kubernetes.default.svc:443
+          Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+          Kube_Tag_Prefix     howzat.var.log.containers.
+          Merge_Log           off
+          Merge_Log_Key       log_processed
+          K8S-Logging.Exclude Off
+          Labels              On
+          Annotations         off
+          K8S-Logging.Parser  On
+      [FILTER]
+          Name                kubernetes
+          Match               tournament-ums.*
+          Kube_URL            https://kubernetes.default.svc:443
+          Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+          Kube_Tag_Prefix     tournament-ums.var.log.containers.
+          Merge_Log           off
+          Merge_Log_Key       log_processed
+          K8S-Logging.Exclude Off
+          Labels              On
+          Annotations         off
+          K8S-Logging.Parser  off
+    fluent-bit.conf: |
+      [SERVICE]
+          Flush         1
+          Log_Level     info
+          Daemon        off
+          Parsers_File  parsers.conf
+          HTTP_Server   On
+          HTTP_Listen   0.0.0.0
+          HTTP_Port     2020
+      @INCLUDE input-kubernetes.conf
+      @INCLUDE filter-kubernetes.conf
+      @INCLUDE output-kafka.conf
+      @INCLUDE output-es.conf
+    input-kubernetes.conf: |2
+
+      [INPUT]
+          Name              tail
+          Alias             tail-kube
+          Tag               kube.*
+          Path              /var/log/containers/*.log
+          Exclude_Path      /var/log/containers/*_cert-manager_*.log, /var/log/containers/dummy-pod-for-secrets*.log, /var/log/containers/*argocd*.log, /var/log/containers/*_default_*.log, /var/log/containers/*_istio-system_*.log, /var/log/containers/*_jenkins_*.log, /var/log/containers/*_kube-node-lease_*.log, /var/log/containers/*_kube-public_*.log, /var/log/containers/*_kube-system_*.log, /var/log/containers/*_logging_*.log, /var/log/containers/*_monitoring_*.log, /var/log/containers/*_newrelic_*.log, /var/log/containers/*_olm_*.log, /var/log/containers/*_istio-operator_*.log, /var/log/containers/*_sumologic_*.log, /var/log/containers/*_consul-client_*.log
+          Parser            docker
+          DB                /var/log/flb_kube.db
+          Mem_Buf_Limit     10MB
+          Skip_Long_Lines   On
+          Refresh_Interval  10
+      [INPUT]
+          Name              tail
+          Alias             tail-tournament
+          Tag               tournament.*
+          Path              /var/log/containers/*tournament*.log
+          Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log,/var/log/containers/*jtp*.log
+          multiline.parser           cri
+          DB                /var/log/flb_kube11.db
+          Mem_Buf_Limit     256MB
+          Skip_Long_Lines   Off
+          Buffer_Max_Size   50M
+          Buffer_Chunk_Size 30M
+          Refresh_Interval  1
+          Read_from_Head    On
+          Rotate_wait       30
+      [INPUT]
+          Name              tail
+          Alias             tail-tournament-ums
+          Tag               tournament-ums.*
+          Path              /var/log/containers/*tournament-ums*.log
+          Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log,/var/log/containers/*jtp*.log
+          multiline.parser           cri
+          DB                /var/log/flb_kube11.db
+          Mem_Buf_Limit     96MB
+          Skip_Long_Lines   Off
+          Buffer_Max_Size   10M
+          Buffer_Chunk_Size 50K
+          Refresh_Interval  1
+          Read_from_Head    On
+          Rotate_wait       30
+      [INPUT]
+          Name              tail
+          Alias             tail-rumble
+          Tag               rumble.*
+          Path              /var/log/containers/*rumble*.log
+          Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log,/var/log/containers/*jtp*.log
+          multiline.parser  cri
+          DB                /var/log/flb_kube11.db
+          Mem_Buf_Limit     256MB
+          Skip_Long_Lines   Off
+          Buffer_Max_Size   50M
+          Buffer_Chunk_Size 30M
+          Refresh_Interval  1
+          Read_from_Head    On
+          Rotate_wait       30
+      [INPUT]
+          Name              tail
+          Alias             tail-carrom
+          Tag               carrom.*
+          Path              /var/log/containers/*carrom*.log
+          Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log
+          Parser            cri
+          DB                /var/log/flb_kube4.db
+          Mem_Buf_Limit     10MB
+          Skip_Long_Lines   On
+          Refresh_Interval  10
+      [INPUT]
+          Name              tail
+          Alias             tail-poker
+          Tag               poker.*
+          Path              /var/log/containers/*poker*.log
+          Exclude_Path      /var/log/containers/*rumble*.log,/var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*consul*.log,/var/log/containers/*tournament*.log,/var/log/containers/*_jenkins_*.log
+          Parser            cri
+          DB                /var/log/flb_kube4.db
+          Mem_Buf_Limit     40MB
+          Skip_Long_Lines   On
+          Refresh_Interval  10
+      [INPUT]
+          Name              tail
+          Alias             tail-ludo
+          Tag               ludo.*
+          Path              /var/log/containers/*ludo*.log
+          Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log
+          multiline.parser           cri
+          DB                /var/log/flb_kube44.db
+          Mem_Buf_Limit     128MB
+          Skip_Long_Lines   Off
+          Buffer_Max_Size   20M
+          Buffer_Chunk_Size 5M
+          Refresh_Interval  5
+          Read_from_Head    On
+          Rotate_wait       30
+      [INPUT]
+          Name              tail
+          Alias             tail-teenpatti
+          Tag               teenpatti.*
+          Path              /var/log/containers/*teenpatti*.log,/var/log/containers/*jtp*.log
+          Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log
+          Parser            cri
+          DB                /var/log/flb_kube4.db
+          Mem_Buf_Limit     10MB
+          Skip_Long_Lines   On
+          Refresh_Interval  10
+      [INPUT]
+          Name              tail
+          Alias             tail-howzat
+          Tag               howzat.*
+          Path              /var/log/containers/*league*.log
+          Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log
+          Parser            cri
+          DB                /var/log/flb_kube6.db
+          Mem_Buf_Limit     10MB
+          Skip_Long_Lines   On
+          Refresh_Interval  10
+      [INPUT]
+          Name              tail
+          Alias             tail-atlantis
+          Tag               atlantis.*
+          Path              /var/log/containers/*atlantis*.log
+          Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*tournament*.log,/var/log/containers/*_jenkins_*.log
+          Parser            docker
+          DB                /var/log/flb_kube4.db
+          Mem_Buf_Limit     10MB
+          Skip_Long_Lines   On
+          Refresh_Interval  10
+    output-es.conf: |
+      [OUTPUT]
+          Name    stdout
+          Match   tournament-ums.*
+          Format  json
+      [OUTPUT]
+          Name                    es
+          Alias                   es-ludo
+          Match                   ludo.*
+          Host                    10.34.204.127
+          HTTP_User               elastic
+          HTTP_Passwd             elastic@444
+          Port                    9200
+          Logstash_Format         On
+          Logstash_Prefix         ludo-logs
+      [OUTPUT]
+          Name                    es
+          Alias                   es-teenpatti
+          Match                   teenpatti.*
+          Host                    10.34.204.127
+          HTTP_User               elastic
+          HTTP_Passwd             elastic@444
+          Port                    9200
+          Logstash_Format         On
+          Logstash_Prefix         teenpatti-logs
+      [OUTPUT]
+          Name                    es
+          Alias                   es-howzat
+          Match                   howzat.*
+          Host                    10.34.204.127
+          HTTP_User               elastic
+          HTTP_Passwd             elastic@444
+          Port                    9200
+          Logstash_Format         On
+          Logstash_Prefix         howzat-logs
+      [OUTPUT]
+          Name                    es
+          Alias                   es-carrom
+          Match                   carrom.*
+          Host                    10.34.204.127
+          HTTP_User               elastic
+          HTTP_Passwd             elastic@444
+          Port                    9200
+          Logstash_Format         On
+          Logstash_Prefix         carrom-logs
+    output-kafka.conf: |
+      [OUTPUT]
+          Name           kafka
+          Match          tournament.*
+          Brokers        10.34.163.23:9092,10.34.180.145:9092
+          Topics         pok-tour-logs
+          Timestamp_Key  @timestamp
+          Retry_Limit    false
+          # hides errors "Receive failed: Disconnected" when kafka kills idle connections
+          rdkafka.log.connection.close false
+          # producer buffer is not included in http://fluentbit.io/documentation/0.12/configuration/memory_usage.html#estimating
+          rdkafka.queue.buffering.max.kbytes 10240
+          # for logs you'll probably want this ot be 0 or 1, not more
+          rdkafka.request.required.acks 1
+      [OUTPUT]
+          Name           kafka
+          Match          rumble.*
+          Brokers        10.34.163.23:9092,10.34.180.145:9092
+          Topics         pok-rum-logs
+          Timestamp_Key  @timestamp
+          Retry_Limit    false
+          # hides errors "Receive failed: Disconnected" when kafka kills idle connections
+          rdkafka.log.connection.close false
+          # producer buffer is not included in http://fluentbit.io/documentation/0.12/configuration/memory_usage.html#estimating
+          rdkafka.queue.buffering.max.kbytes 10240
+          # for logs you'll probably want this ot be 0 or 1, not more
+          rdkafka.request.required.acks 1
+      [OUTPUT]
+          Name           kafka
+          Match          poker.*
+          Brokers        10.34.163.23:9092,10.34.180.145:9092
+          Topics         pok-logs
+          Timestamp_Key  @timestamp
+          Retry_Limit    false
+          # hides errors "Receive failed: Disconnected" when kafka kills idle connections
+          rdkafka.log.connection.close false
+          # producer buffer is not included in http://fluentbit.io/documentation/0.12/configuration/memory_usage.html#estimating
+          rdkafka.queue.buffering.max.kbytes 10240
+          # for logs you'll probably want this ot be 0 or 1, not more
+          rdkafka.request.required.acks 1
+    parsers.conf: |
+      [PARSER]
+          # http://rubular.com/r/tjUt3Awgg4
+          Name cri
+          Format regex
+          Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<log>.*)$
+          Time_Key    time
+          Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+      [PARSER]
+          Name   apache
+          Format regex
+          Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+          Time_Key time
+          Time_Format %d/%b/%Y:%H:%M:%S %z
+
+      [PARSER]
+          Name   apache2
+          Format regex
+          Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^ ]*) +\S*)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+          Time_Key time
+          Time_Format %d/%b/%Y:%H:%M:%S %z
+
+      [PARSER]
+          Name   apache_error
+          Format regex
+          Regex  ^\[[^ ]* (?<time>[^\]]*)\] \[(?<level>[^\]]*)\](?: \[pid (?<pid>[^\]]*)\])?( \[client (?<client>[^\]]*)\])? (?<message>.*)$
+
+      [PARSER]
+          Name   nginx
+          Format regex
+          Regex ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+          Time_Key time
+          Time_Format %d/%b/%Y:%H:%M:%S %z
+
+      [PARSER]
+          Name   json
+          Format json
+          Time_Key time
+          Time_Format %d/%b/%Y:%H:%M:%S %z
+
+      [PARSER]
+          Name        docker
+          Format      json
+          Time_Key    time
+          Time_Format %Y-%m-%dT%H:%M:%S.%L
+          Time_Keep   On
+
+      [PARSER]
+          Name        syslog
+          Format      regex
+          Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
+          Time_Key    time
+          Time_Format %b %d %H:%M:%S
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"filter-kubernetes.conf":"[FILTER]\n    Name                kubernetes\n    Match               carrom.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     carrom.var.log.containers.\n    Merge_Log           off\n    Merge_Log_Key       log_processed\n    K8S-Logging.Exclude Off\n    Labels              On\n    Annotations         off\n    K8S-Logging.Parser  On\n[FILTER]\n    Name                kubernetes\n    Match               tournament.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     tournament.var.log.containers.\n    Merge_Log           off\n    Merge_Log_Key       log_processed\n    K8S-Logging.Exclude Off\n    Labels              On\n    Annotations         off\n    K8S-Logging.Parser  On\n[FILTER]\n    Name                kubernetes\n    Match               poker.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     poker.var.log.containers.\n    Merge_Log           off\n    Merge_Log_Key       log_processed\n    K8S-Logging.Exclude Off\n    Labels              On\n    Annotations         off\n    K8S-Logging.Parser  On\n[FILTER]\n    Name                kubernetes\n    Match               rumble.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     rumble.var.log.containers.\n    Merge_Log           off\n    Merge_Log_Key       log_processed\n    K8S-Logging.Exclude Off\n    Labels              On\n    Annotations         off\n    K8S-Logging.Parser  On\n[FILTER]\n    Name                kubernetes\n    Match               ludo.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     ludo.var.log.containers.\n    Merge_Log           off\n    Merge_Log_Key       log_processed\n    K8S-Logging.Exclude Off\n    Labels              On\n    Annotations         off\n    K8S-Logging.Parser  On\n[FILTER]\n    Name                kubernetes\n    Match               kube.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     kube.var.log.containers.\n    Merge_Log           On\n    Merge_Log_Key       log_processed\n    K8S-Logging.Parser  On\n    K8S-Logging.Exclude Off\n[FILTER]\n    Name                kubernetes\n    Match               teenpatti.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     teenpatti.var.log.containers.\n    Merge_Log           off\n    Merge_Log_Key       log_processed\n    K8S-Logging.Exclude Off\n    Labels              On\n    Annotations         off\n    K8S-Logging.Parser  On\n[FILTER]\n    Name                kubernetes\n    Match               howzat.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     howzat.var.log.containers.\n    Merge_Log           off\n    Merge_Log_Key       log_processed\n    K8S-Logging.Exclude Off\n    Labels              On\n    Annotations         off\n    K8S-Logging.Parser  On\n[FILTER]\n    Name                kubernetes\n    Match               tournament-settlement.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     tournament-settlement.var.log.containers.\n    Merge_Log           off\n    Merge_Log_Key       log_processed\n    K8S-Logging.Exclude Off\n    Labels              On\n    Annotations         off\n    K8S-Logging.Parser  On","fluent-bit.conf":"[SERVICE]\n    Flush         1\n    Log_Level     info\n    Daemon        off\n    Parsers_File  parsers.conf\n    HTTP_Server   On\n    HTTP_Listen   0.0.0.0\n    HTTP_Port     2020\n@INCLUDE input-kubernetes.conf\n@INCLUDE filter-kubernetes.conf\n@INCLUDE output-kafka.conf\n@INCLUDE output-es.conf\n","input-kubernetes.conf":"\n[INPUT]\n    Name              tail\n    Alias             tail-kube\n    Tag               kube.*\n    Path              /var/log/containers/*.log\n    Exclude_Path      /var/log/containers/*_cert-manager_*.log, /var/log/containers/dummy-pod-for-secrets*.log, /var/log/containers/*argocd*.log, /var/log/containers/*_default_*.log, /var/log/containers/*_istio-system_*.log, /var/log/containers/*_jenkins_*.log, /var/log/containers/*_kube-node-lease_*.log, /var/log/containers/*_kube-public_*.log, /var/log/containers/*_kube-system_*.log, /var/log/containers/*_logging_*.log, /var/log/containers/*_monitoring_*.log, /var/log/containers/*_newrelic_*.log, /var/log/containers/*_olm_*.log, /var/log/containers/*_istio-operator_*.log, /var/log/containers/*_sumologic_*.log, /var/log/containers/*_consul-client_*.log\n    Parser            docker\n    DB                /var/log/flb_kube.db\n    Mem_Buf_Limit     10MB\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n[INPUT]\n    Name              tail\n    Alias             tail-tournament\n    Tag               tournament.*\n    Path              /var/log/containers/*tournament*.log\n    Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log,/var/log/containers/*jtp*.log\n    Parser            cri\n    DB                /var/log/flb_kube11.db\n    Mem_Buf_Limit     256MB\n    Skip_Long_Lines   On\n    Buffer_Max_Size   50M\n    Buffer_Chunk_Size 30M\n    Refresh_Interval  1\n    Read_from_Head    On\n    Rotate_wait       30\n[INPUT]\n    Name              tail\n    Alias             tail-tournament-settlement\n    Tag               tournament-settlement.*\n    Path              /var/log/containers/*tournament-settlement*.log\n    Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log,/var/log/containers/*jtp*.log\n    Parser            cri\n    DB                /var/log/flb_kube11.db\n    Mem_Buf_Limit     256MB\n    Skip_Long_Lines   On\n    Buffer_Max_Size   50M\n    Buffer_Chunk_Size 30M\n    Refresh_Interval  1\n    Read_from_Head    On\n    Rotate_wait       30\n[INPUT]\n    Name              tail\n    Alias             tail-rumble\n    Tag               rumble.*\n    Path              /var/log/containers/*rumble*.log\n    Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log,/var/log/containers/*jtp*.log\n    Parser            cri\n    DB                /var/log/flb_kube11.db\n    Mem_Buf_Limit     256MB\n    Skip_Long_Lines   On\n    Buffer_Max_Size   50M\n    Buffer_Chunk_Size 30M\n    Refresh_Interval  1\n    Read_from_Head    On\n    Rotate_wait       30\n[INPUT]\n    Name              tail\n    Alias             tail-carrom\n    Tag               carrom.*\n    Path              /var/log/containers/*carrom*.log\n    Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log\n    Parser            cri\n    DB                /var/log/flb_kube4.db\n    Mem_Buf_Limit     10MB\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n[INPUT]\n    Name              tail\n    Alias             tail-poker\n    Tag               poker.*\n    Path              /var/log/containers/*poker*.log\n    Exclude_Path      /var/log/containers/*rumble*.log,/var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*consul*.log,/var/log/containers/*tournament*.log,/var/log/containers/*_jenkins_*.log\n    Parser            cri\n    DB                /var/log/flb_kube4.db\n    Mem_Buf_Limit     40MB\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n[INPUT]\n    Name              tail\n    Alias             tail-ludo\n    Tag               ludo.*\n    Path              /var/log/containers/*ludo*.log\n    Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log\n    Parser            cri\n    DB                /var/log/flb_kube4.db\n    Mem_Buf_Limit     10MB\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n[INPUT]\n    Name              tail\n    Alias             tail-teenpatti\n    Tag               teenpatti.*\n    Path              /var/log/containers/*teenpatti*.log,/var/log/containers/*jtp*.log\n    Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log\n    Parser            cri\n    DB                /var/log/flb_kube4.db\n    Mem_Buf_Limit     10MB\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n[INPUT]\n    Name              tail\n    Alias             tail-howzat\n    Tag               howzat.*\n    Path              /var/log/containers/*league*.log\n    Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*_jenkins_*.log\n    Parser            cri\n    DB                /var/log/flb_kube6.db\n    Mem_Buf_Limit     10MB\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n[INPUT]\n    Name              tail\n    Alias             tail-atlantis\n    Tag               atlantis.*\n    Path              /var/log/containers/*atlantis*.log\n    Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*tournament*.log,/var/log/containers/*_jenkins_*.log\n    Parser            docker\n    DB                /var/log/flb_kube4.db\n    Mem_Buf_Limit     10MB\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n","output-es.conf":"[OUTPUT]\n    Name                    es\n    Alias                   es-ludo\n    Match                   ludo.*\n    Host                    10.34.204.127\n    HTTP_User               elastic\n    HTTP_Passwd             elastic@444\n    Port                    9200\n    Logstash_Format         On\n    Logstash_Prefix         ludo-logs\n[OUTPUT]\n    Name                    es\n    Alias                   es-teenpatti\n    Match                   teenpatti.*\n    Host                    10.34.204.127\n    HTTP_User               elastic\n    HTTP_Passwd             elastic@444\n    Port                    9200\n    Logstash_Format         On\n    Logstash_Prefix         teenpatti-logs\n[OUTPUT]\n    Name                    es\n    Alias                   es-howzat\n    Match                   howzat.*\n    Host                    10.34.204.127\n    HTTP_User               elastic\n    HTTP_Passwd             elastic@444\n    Port                    9200\n    Logstash_Format         On\n    Logstash_Prefix         howzat-logs\n[OUTPUT]\n    Name                    es\n    Alias                   es-carrom\n    Match                   carrom.*\n    Host                    10.34.204.127\n    HTTP_User               elastic\n    HTTP_Passwd             elastic@444\n    Port                    9200\n    Logstash_Format         On\n    Logstash_Prefix         carrom-logs\n","output-kafka.conf":"[OUTPUT]\n    Name   stdout\n    Match  tournament-settlement.*\n    Format json\n[OUTPUT]\n    Name           kafka\n    Match          tournament.*\n    Brokers        10.34.163.23:9092,10.34.180.145:9092\n    Topics         pok-tour-logs\n    Timestamp_Key  @timestamp\n    Retry_Limit    false\n    # hides errors \"Receive failed: Disconnected\" when kafka kills idle connections\n    rdkafka.log.connection.close false\n    # producer buffer is not included in http://fluentbit.io/documentation/0.12/configuration/memory_usage.html#estimating\n    rdkafka.queue.buffering.max.kbytes 10240\n    # for logs you'll probably want this ot be 0 or 1, not more\n    rdkafka.request.required.acks 1\n[OUTPUT]\n    Name           kafka\n    Match          rumble.*\n    Brokers        10.34.163.23:9092,10.34.180.145:9092\n    Topics         pok-rum-logs\n    Timestamp_Key  @timestamp\n    Retry_Limit    false\n    # hides errors \"Receive failed: Disconnected\" when kafka kills idle connections\n    rdkafka.log.connection.close false\n    # producer buffer is not included in http://fluentbit.io/documentation/0.12/configuration/memory_usage.html#estimating\n    rdkafka.queue.buffering.max.kbytes 10240\n    # for logs you'll probably want this ot be 0 or 1, not more\n    rdkafka.request.required.acks 1\n[OUTPUT]\n    Name           kafka\n    Match          poker.*\n    Brokers        10.34.163.23:9092,10.34.180.145:9092\n    Topics         pok-logs\n    Timestamp_Key  @timestamp\n    Retry_Limit    false\n    # hides errors \"Receive failed: Disconnected\" when kafka kills idle connections\n    rdkafka.log.connection.close false\n    # producer buffer is not included in http://fluentbit.io/documentation/0.12/configuration/memory_usage.html#estimating\n    rdkafka.queue.buffering.max.kbytes 10240\n    # for logs you'll probably want this ot be 0 or 1, not more\n    rdkafka.request.required.acks 1\n","parsers.conf":"[PARSER]\n    # http://rubular.com/r/tjUt3Awgg4\n    Name cri\n    Format regex\n    Regex ^(?\u003ctime\u003e[^ ]+) (?\u003cstream\u003estdout|stderr) (?\u003clogtag\u003e[^ ]*) (?\u003clog\u003e.*)$\n    Time_Key    time\n    Time_Format %Y-%m-%dT%H:%M:%S.%L%z\n[PARSER]\n    Name   apache\n    Format regex\n    Regex  ^(?\u003chost\u003e[^ ]*) [^ ]* (?\u003cuser\u003e[^ ]*) \\[(?\u003ctime\u003e[^\\]]*)\\] \"(?\u003cmethod\u003e\\S+)(?: +(?\u003cpath\u003e[^\\\"]*?)(?: +\\S*)?)?\" (?\u003ccode\u003e[^ ]*) (?\u003csize\u003e[^ ]*)(?: \"(?\u003creferer\u003e[^\\\"]*)\" \"(?\u003cagent\u003e[^\\\"]*)\")?$\n    Time_Key time\n    Time_Format %d/%b/%Y:%H:%M:%S %z\n\n[PARSER]\n    Name   apache2\n    Format regex\n    Regex  ^(?\u003chost\u003e[^ ]*) [^ ]* (?\u003cuser\u003e[^ ]*) \\[(?\u003ctime\u003e[^\\]]*)\\] \"(?\u003cmethod\u003e\\S+)(?: +(?\u003cpath\u003e[^ ]*) +\\S*)?\" (?\u003ccode\u003e[^ ]*) (?\u003csize\u003e[^ ]*)(?: \"(?\u003creferer\u003e[^\\\"]*)\" \"(?\u003cagent\u003e[^\\\"]*)\")?$\n    Time_Key time\n    Time_Format %d/%b/%Y:%H:%M:%S %z\n\n[PARSER]\n    Name   apache_error\n    Format regex\n    Regex  ^\\[[^ ]* (?\u003ctime\u003e[^\\]]*)\\] \\[(?\u003clevel\u003e[^\\]]*)\\](?: \\[pid (?\u003cpid\u003e[^\\]]*)\\])?( \\[client (?\u003cclient\u003e[^\\]]*)\\])? (?\u003cmessage\u003e.*)$\n\n[PARSER]\n    Name   nginx\n    Format regex\n    Regex ^(?\u003cremote\u003e[^ ]*) (?\u003chost\u003e[^ ]*) (?\u003cuser\u003e[^ ]*) \\[(?\u003ctime\u003e[^\\]]*)\\] \"(?\u003cmethod\u003e\\S+)(?: +(?\u003cpath\u003e[^\\\"]*?)(?: +\\S*)?)?\" (?\u003ccode\u003e[^ ]*) (?\u003csize\u003e[^ ]*)(?: \"(?\u003creferer\u003e[^\\\"]*)\" \"(?\u003cagent\u003e[^\\\"]*)\")?$\n    Time_Key time\n    Time_Format %d/%b/%Y:%H:%M:%S %z\n\n[PARSER]\n    Name   json\n    Format json\n    Time_Key time\n    Time_Format %d/%b/%Y:%H:%M:%S %z\n\n[PARSER]\n    Name        docker\n    Format      json\n    Time_Key    time\n    Time_Format %Y-%m-%dT%H:%M:%S.%L\n    Time_Keep   On\n\n[PARSER]\n    Name        syslog\n    Format      regex\n    Regex       ^\\\u003c(?\u003cpri\u003e[0-9]+)\\\u003e(?\u003ctime\u003e[^ ]* {1,2}[^ ]* [^ ]*) (?\u003chost\u003e[^ ]*) (?\u003cident\u003e[a-zA-Z0-9_\\/\\.\\-]*)(?:\\[(?\u003cpid\u003e[0-9]+)\\])?(?:[^\\:]*\\:)? *(?\u003cmessage\u003e.*)$\n    Time_Key    time\n    Time_Format %b %d %H:%M:%S\n"},"kind":"ConfigMap","metadata":{"annotations":{},"creationTimestamp":"2024-09-20T12:28:31Z","labels":{"k8s-app":"fluent-bit"},"name":"fluent-bit-config","namespace":"logging","resourceVersion":"2491990232","uid":"c68803c4-f1c8-44af-b52c-d37cb2d9e737"}}
+    creationTimestamp: "2024-09-20T12:28:31Z"
+    labels:
+      k8s-app: fluent-bit
+    name: fluent-bit-config
+    namespace: logging
+    resourceVersion: "2506916036"
+    uid: c68803c4-f1c8-44af-b52c-d37cb2d9e737
+- apiVersion: v1
+  data:
+    filter-kubernetes.conf: |-
+      [FILTER]
+        Name  stdout
+        Match *
+      [FILTER]
+          Name                kubernetes
+          Match               poker.*
+          Kube_URL            https://kubernetes.default.svc:443
+          Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+          Kube_Tag_Prefix     poker.var.log.containers.
+          Merge_Log           On
+          Merge_Log_Key       log_processed
+          K8S-Logging.Exclude Off
+          Labels              On
+          Annotations         off
+          K8S-Logging.Parser  On
+    fluent-bit.conf: |
+      [SERVICE]
+          Flush         1
+          Log_Level     info
+          Daemon        off
+          Parsers_File  parsers.conf
+          HTTP_Server   On
+          HTTP_Listen   0.0.0.0
+          HTTP_Port     2020
+
+      @INCLUDE input-kubernetes.conf
+      @INCLUDE filter-kubernetes.conf
+      @INCLUDE output-es.conf
+    input-kubernetes.conf: |
+      [INPUT]
+          Name              tail
+          Tag               poker.*
+          Path              /var/log/containers/*poker*.log
+          Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*consul*.log,/var/log/containers/*tournament*.log,/var/log/containers/*_jenkins_*.log
+          DB                /var/log/flb_kube4.db
+          parser            cri
+          Mem_Buf_Limit     10MB
+          Skip_Long_Lines   On
+          Refresh_Interval  10
+
+      [INPUT]
+          Name cpu
+          Tag  cpu.local
+    output-es.conf: |
+      [OUTPUT]
+          Name                    es
+          Match                   poker.*
+          Host                    10.34.204.127
+          HTTP_User               elastic
+          HTTP_Passwd             elastic@444
+          number_of_replicas      0
+          Port                    9200
+          Logstash_Format         On
+          Logstash_Prefix         poker-test-logs
+
+      [OUTPUT]
+          Name  null
+          Match *
+    parsers.conf: |
+      [PARSER]
+          Name   json
+          Format json
+          Time_Key time
+          Time_Format %d/%b/%Y:%H:%M:%S %z
+
+      [PARSER]
+          Name         docker
+          Format       json
+          Time_Key     time
+          Time_Format  %Y-%m-%dT%H:%M:%S.%L
+          Time_Keep    On
+      [PARSER]
+          # http://rubular.com/r/tjUt3Awgg4
+          Name cri
+          Format regex
+          Regex ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<log>.*)$
+          Time_Key    time
+          Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","data":{"filter-kubernetes.conf":"[FILTER]\n  Name  stdout\n  Match *\n[FILTER]\n    Name                kubernetes\n    Match               poker.*\n    Kube_URL            https://kubernetes.default.svc:443\n    Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt\n    Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token\n    Kube_Tag_Prefix     poker.var.log.containers.\n    Merge_Log           On\n    Merge_Log_Key       log_processed\n    K8S-Logging.Exclude Off\n    Labels              On\n    Annotations         off\n    K8S-Logging.Parser  On","fluent-bit.conf":"[SERVICE]\n    Flush         1\n    Log_Level     info\n    Daemon        off\n    Parsers_File  parsers.conf\n    HTTP_Server   On\n    HTTP_Listen   0.0.0.0\n    HTTP_Port     2020\n\n@INCLUDE input-kubernetes.conf\n@INCLUDE filter-kubernetes.conf\n@INCLUDE output-es.conf\n","input-kubernetes.conf":"[INPUT]\n    Name              tail\n    Tag               poker.*\n    Path              /var/log/containers/*poker*.log\n    Exclude_Path      /var/log/containers/*_hzt-*_istio-proxy-*.log,/var/log/containers/*_hzt-*_istio-init-*.log,/var/log/containers/*consul*.log,/var/log/containers/*tournament*.log,/var/log/containers/*_jenkins_*.log\n    DB                /var/log/flb_kube4.db\n    parser            cri\n    Mem_Buf_Limit     10MB\n    Skip_Long_Lines   On\n    Refresh_Interval  10\n\n[INPUT]\n    Name cpu\n    Tag  cpu.local\n","output-es.conf":"[OUTPUT]\n    Name                    es\n    Match                   poker.*\n    Host                    10.34.204.127\n    HTTP_User               elastic\n    HTTP_Passwd             elastic@444\n    number_of_replicas      0\n    Port                    9200\n    Logstash_Format         On\n    Logstash_Prefix         poker-test-logs\n\n[OUTPUT]\n    Name  null\n    Match *\n","parsers.conf":"[PARSER]\n    Name   json\n    Format json\n    Time_Key time\n    Time_Format %d/%b/%Y:%H:%M:%S %z\n\n[PARSER]\n    Name         docker\n    Format       json\n    Time_Key     time\n    Time_Format  %Y-%m-%dT%H:%M:%S.%L\n    Time_Keep    On\n[PARSER]\n    # http://rubular.com/r/tjUt3Awgg4\n    Name cri\n    Format regex\n    Regex ^(?\u003ctime\u003e[^ ]+) (?\u003cstream\u003estdout|stderr) (?\u003clogtag\u003e[^ ]*) (?\u003clog\u003e.*)$\n    Time_Key    time\n    Time_Format %Y-%m-%dT%H:%M:%S.%L%z\n"},"kind":"ConfigMap","metadata":{"annotations":{},"labels":{"k8s-app":"fluent-bit-test-config"},"name":"fluent-bit-test-config","namespace":"logging"}}
+    creationTimestamp: "2024-02-23T15:29:02Z"
+    labels:
+      k8s-app: fluent-bit-test-config
+    name: fluent-bit-test-config
+    namespace: logging
+    resourceVersion: "1438235255"
+    uid: e5d1dbda-8938-4d18-9086-6c6901e54a07
+- apiVersion: v1
+  data:
+    root-cert.pem: |
+      -----BEGIN CERTIFICATE-----
+      MIIC/DCCAeSgAwIBAgIQEQ+i9qL3iyZ0Vkxq8wbOtjANBgkqhkiG9w0BAQsFADAY
+      MRYwFAYDVQQKEw1jbHVzdGVyLmxvY2FsMB4XDTIyMDcwMzIxNDEwNloXDTMyMDYz
+      MDIxNDEwNlowGDEWMBQGA1UEChMNY2x1c3Rlci5sb2NhbDCCASIwDQYJKoZIhvcN
+      AQEBBQADggEPADCCAQoCggEBANXY+SLve5DjlLnncCJEz3kx3n+ropRUq8ZuSfy1
+      uglogHu3nU0ZcdHoQDBGYSpYemRUMVP49+O12uj+WHyh3QXsT2jF6xIbv/6apsa+
+      pqH5VxRapmojgyV6mlLNKPIFmhEzUKWHR4Uh9SVUu9ECouWsKBzwxpSIxl9Uhug6
+      h9jbKteARLpcLunrmkPQ9dhrkeixpz46OAbmloOFBAiDPutBmrlaEB2k3UiZ6zvj
+      n7pUZzkncytv95T7B9RKDseXiYdh0xhT1E/h88rwQRYC+k4gHk0qQ05zBgw0ht9v
+      Q9jO96rwZpJv3XW2NcGqNFG4qbfH632CUVSGVhFBD2UAGN8CAwEAAaNCMEAwDgYD
+      VR0PAQH/BAQDAgIEMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFJzAeom2oOR/
+      OxZCbUq/6hmRjFnQMA0GCSqGSIb3DQEBCwUAA4IBAQAXkTHy7S0O7B8YzHMfyhks
+      6tIeN/Lw2fZelRqdewO0j26xZMdIKm5PU0sZ2zLn3/JjeZyhuoMjCSYFxpBZ1975
+      Lfl6tRcgJAFlns4U59VW1btg808PNY9XjtwJ8GpiJM40odrog30CvQcuMkXhoRgL
+      TN/cRd9cz4IWn/grmreCH5c5wKtvX4nITXXsRkgU4o2FVhDdtVal7fmEGhfO/6mM
+      w5fps6k7+sKuufzrGWztH+bcRmQLYz17S/wOBG9KbMuZsvrF5s/w7choktcuWVrq
+      y2Fo3PTtr1u6XE0YC6+0btPNyNgzzSSlM6cf9O2TmUSvbxRWKd/yTSCirv5Jh4uK
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: "2022-07-20T08:27:17Z"
+    labels:
+      istio.io/config: "true"
+    name: istio-ca-root-cert
+    namespace: logging
+    resourceVersion: "20909292"
+    uid: e3099815-d303-4565-8a96-3ae5a5df1f4d
+- apiVersion: v1
+  data:
+    ca.crt: |
+      -----BEGIN CERTIFICATE-----
+      MIIC/jCCAeagAwIBAgIBADANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDEwprdWJl
+      cm5ldGVzMB4XDTIyMDYwOTEzMDIyMFoXDTMyMDYwNjEzMDIyMFowFTETMBEGA1UE
+      AxMKa3ViZXJuZXRlczCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANTu
+      yYC0AjMxYSC5GeSGrenZEiQPglsTXvfduPgowclK1Ni0boohdqNADqyb9bmIDnI5
+      K0VKdCjveHku8NlVCKq712cLhBEGLq9WUpaTwNwsv+7rEMzgL2RQ0g3wdjNqPTte
+      DthgPc+40A6jjPoKE2r0iSsXDIfMSD1crGP2ljsT3sgacKgrhlDIcErI1AQ0MfD2
+      1lEPvsdOjYu2rLbdozHhDA369fBa5xSwtvjcsl1y+CdocgdgfczWl9Qk+DT/IuXs
+      YiAe3WBmziARt2d8cpHhCBSZOyNIV77h0epP6+xIDmMi7a7TGw/MOJgrYJP9qGtf
+      bqEFPkHHrmZ7xx8UPw0CAwEAAaNZMFcwDgYDVR0PAQH/BAQDAgKkMA8GA1UdEwEB
+      /wQFMAMBAf8wHQYDVR0OBBYEFAp2HjFVFDnF5OhdB16bVtNIcKqBMBUGA1UdEQQO
+      MAyCCmt1YmVybmV0ZXMwDQYJKoZIhvcNAQELBQADggEBAAuV7N+MyyD2t8AdbgOM
+      06lzBOgOS3LEsGzdIf8fU5Ogtk5Tu21kFzCbFZgy2q7u8K8G1MvHczezAHfWJ8a0
+      I4N33f8Jo2QwEkTfloIUc+lHgHVWKHcB9SpnheR86p/8AqUXtrzc6LpIubinR06a
+      +/EGwMKGgBMHu65rzpdscIQZTI+Eze7kEJOoI6/aK16HqXV7xdJxatKu0UucAVp/
+      zUed3//4zkBAVy5nVSLhxJ0QV4mDZGk+WeU4YGveabWvsV3eW0PlIo6JUcsSTD2g
+      3ESXmXlZ7+6rCp2Y/KM2OwQgnecFQiWcDfyPtkUeSlYBekwbGfA5+a6VrpFDpMaQ
+      QOw=
+      -----END CERTIFICATE-----
+  kind: ConfigMap
+  metadata:
+    annotations:
+      kubernetes.io/description: Contains a CA bundle that can be used to verify the
+        kube-apiserver when using internal endpoints such as the internal service
+        IP or kubernetes.default.svc. No other usage is guaranteed across distributions
+        of Kubernetes clusters.
+    creationTimestamp: "2022-07-20T08:27:17Z"
+    name: kube-root-ca.crt
+    namespace: logging
+    resourceVersion: "20909293"
+    uid: 9735f4d3-0e41-4727-8e3f-7366f98f5d8c
+kind: List
+metadata:
+  resourceVersion: ""

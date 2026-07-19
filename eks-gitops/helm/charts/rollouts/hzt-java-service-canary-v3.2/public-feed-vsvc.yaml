@@ -1,0 +1,52 @@
+# apiVersion: networking.istio.io/v1alpha3
+# kind: VirtualService
+# metadata:
+#   labels:
+#     app.kubernetes.io/instance: hzt-feed-service-hzt-prod
+#   name: feed-public-vsvc
+#   namespace: hzt-prod
+# spec:
+#   gateways:
+#   - "default/public-default-gateway"
+#   hosts:
+#   - Z5tWubyb79l8MHjU69nD-feed.howzat.com
+#   http:
+#   - match:
+#       - uri:
+#           prefix: "/fm/api/si/webhook/"
+#       - method:
+#           exact: POST
+#     route:
+#     - destination:
+#         host: feed-svc
+#         subset: stable
+
+
+# ###########generated from helm ######
+
+# apiVersion: networking.istio.io/v1alpha3
+# kind: VirtualService
+# metadata:
+#   name: beta-league-public-vsvc
+# spec:
+#   gateways:
+#   - default/internal-public-gateway
+#   - default/internal-public-gateway2
+#   hosts:
+#   - beta-league.howzat.com
+#   - beta1-league.howzat.com
+#   http:
+#   - match:
+#     - headers:
+#         end-user:
+#           exact: jason
+#       - uri:
+#           prefix: /fm/api/si/webhook/
+#       - method:
+#           exact: POST
+#   - name: primary
+#     route:
+#     - destination:
+#         host: beta-league-svc
+#         subset: stable
+#       weight: 100

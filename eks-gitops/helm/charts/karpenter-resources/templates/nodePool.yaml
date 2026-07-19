@@ -1,0 +1,34 @@
+{{- range .Values.nodePools }}
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: {{ .name }}
+spec:
+  template:
+    metadata:
+{{- if .doNotDisruptAnnotation }}
+     annotations:
+        karpenter.sh/do-not-disrupt: "true"
+{{- end }}
+{{- if .labels }}
+     labels:
+{{ toYaml .labels | indent 6 }}
+{{- end }}
+    spec:
+      nodeClassRef:
+        name: {{ .nodeClassRef }}
+      taints:
+{{ toYaml .taints | indent 8 }}
+      requirements:
+{{ toYaml .requirements | indent 8 }}
+{{- if .kubelet }}
+      kubelet:
+{{ toYaml .kubelet | indent 8 }}
+{{- end }}
+  disruption:
+{{ toYaml .disruption | indent 6 }}
+  limits:
+    cpu: {{ .cpuLimits }}
+    memory:  {{ .memoryLimits }}
+---
+{{- end }}

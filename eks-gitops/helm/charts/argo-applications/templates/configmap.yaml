@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: runsh
+  namespace: {{ .Values.spec.destination.namespace }}
+data:
+  run.sh: |
+    #!/bin/bash
+    $ENV_VAR
+    $RUN_SH

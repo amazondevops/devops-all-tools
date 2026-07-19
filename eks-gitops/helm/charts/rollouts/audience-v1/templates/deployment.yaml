@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+{{- toYaml .Values.app | nindent 4 }}
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+{{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+{{- end }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit | default 3 }}
+  selector:
+    matchLabels:
+{{- toYaml .Values.app | nindent 6 }}
+  template:
+    metadata:
+{{- with .Values.podAnnotations }}
+      annotations:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+      labels:
+{{- toYaml .Values.app | nindent 8 }}
+    spec:
+{{- with .Values.podSecurityContext }}
+      securityContext:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+{{- with .Values.serviceAccount }}
+      serviceAccountName: {{ .name }}
+{{- end }}
+      containers:
+        - name: {{ .Values.app.name }}
+{{- with .Values.securityContext }}
+          securityContext:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+{{- with .Values.command }}
+          command:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+{{- with .Values.env }}
+          env:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+{{- with .Values.container.ports }}
+          ports:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+{{- with .Values.livenessProbe }}
+          livenessProbe:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+{{- with .Values.readinessProbe }}
+          readinessProbe:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+{{- with .Values.startupProbe }}
+          startupProbe:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+
+{{- with .Values.resources }}
+          resources:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+{{- with .Values.nodeSelector }}
+      nodeSelector:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+{{- with .Values.affinity }}
+      affinity:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+{{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+{{- end }}
+{{- with .Values.tolerations }}
+      tolerations:
+{{- toYaml . | nindent 8 }}
+{{- end }}

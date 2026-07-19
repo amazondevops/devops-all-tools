@@ -1,0 +1,81 @@
+{{- range  $index, $service := .Values.multipleServices }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: {{ $.Values.container.name }}
+    env: {{ $.Values.env }}
+    app.kubernetes.io/managed-by: Helm
+  name: {{ $.Values.container.name }}-svc{{ .name }}
+spec:
+  type: {{ $service.type }}
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: {{ $service.targetPort }}
+    name: http-{{ $.Values.container.name }}{{ .name }}
+  selector:
+    app-svc: {{ $.Values.container.name }}-svc
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ $.Values.container.name }}-vsvc{{ .name }}
+spec:
+  gateways:
+  {{- range $.Values.virtualservice.gateways }}
+  - {{ . }}
+  {{- end }}
+  - mesh
+  hosts:
+  - {{ .domain }}
+  - {{ $.Values.container.name }}-svc{{ .name }}.{{ $.Values.env }}.svc.cluster.local
+  http:
+  - name: {{ $.Values.virtualservice.routeName }}  
+    route:
+    - destination:
+        host: {{ $.Values.container.name }}-svc{{ .name }}
+        subset: stable  
+      weight: {{ $.Values.rollout.stableTraffic }}
+    - destination:
+        host: {{ $.Values.container.name }}-svc{{ .name }}
+        subset: canary
+      weight: {{ $.Values.rollout.canaryTraffic }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ $.Values.container.name }}-canary-vsvc{{ .name }}
+spec:
+  gateways:
+  - mesh
+  {{- range $.Values.virtualservice.gateways }}
+  - {{ . }}
+  {{- end }}
+  hosts:
+  - {{ .domain }}
+  - {{ $.Values.container.name }}-svc{{ .name }}.{{ $.Values.env }}.svc.cluster.local
+  http:
+  - name: {{ $.Values.virtualservice.routeName }}  
+    route:
+    - destination:
+        host: {{ $.Values.container.name }}-svc{{ .name }}
+        subset: canary
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: {{ $.Values.container.name }}-dstnrule{{ .name }}
+spec:
+  host: {{ $.Values.container.name }}-svc{{ .name }}
+  subsets:
+  - name: canary   
+    labels:        
+      app-svc: {{ $.Values.container.name }}-svc
+  - name: stable   
+    labels:        
+      app-svc: {{ $.Values.container.name }}-svc
+{{- end }}

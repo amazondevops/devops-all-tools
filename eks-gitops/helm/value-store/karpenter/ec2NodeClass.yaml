@@ -1,0 +1,83 @@
+ec2NodeClasses:
+  - name: pkrb-dev
+    tags:
+      environment: nprod
+      Application: Poker
+      CostCenter: "PokerB2B"
+      Backup: "False"
+      Owner: "Diamond"
+    subnetSelectorTerms:
+      - id: "subnet-089f9dea824896f5a"
+      - id: "subnet-0bd9e710b44446de4"
+      - id: "subnet-04c59ab838d738079"
+    securityGroupSelectorTerms:
+      - id: "sg-0ebe6a10d9c56df6e"
+    amiID: "ami-0ff1619e0e04695ea"
+    role: "Karpenter-dmnd-pkrb-dev-aps1-eks-20250605121953794800000005"
+    amiFamily: "AL2023"
+    blockDeviceMappings:
+      - deviceName: /dev/xvda
+        ebs:
+          volumeSize: 20Gi
+          volumeType: gp3
+          deleteOnTermination: true
+    userData: |-
+      #!/bin/bash
+      mkdir -p /consul-data
+      chmod -R 777 /consul-data
+
+
+  - name: rum-dev
+    tags:
+      environment: nprod
+      Application: Poker
+      CostCenter: "PokerB2B"
+      Backup: "False"
+      Owner: "Diamond"
+    subnetSelectorTerms:
+      - id: "subnet-089f9dea824896f5a"
+      - id: "subnet-0bd9e710b44446de4"
+      - id: "subnet-04c59ab838d738079"
+    securityGroupSelectorTerms:
+      - id: "sg-0ebe6a10d9c56df6e"
+    amiID: "ami-0ff1619e0e04695ea"
+    role: "Karpenter-dmnd-pkrb-dev-aps1-eks-20250605121953794800000005"
+    amiFamily: "AL2023"
+    blockDeviceMappings:
+      - deviceName: /dev/xvda
+        ebs:
+          volumeSize: 20Gi
+          volumeType: gp3
+          deleteOnTermination: true
+    userData: |-
+      #!/bin/bash
+      mkdir -p /consul-data
+      chmod -R 777 /consul-data
+
+  
+  - name: aud-dev
+    tags:
+      environment: nprod
+      Application: Poker
+      CostCenter: "PokerB2B"
+      Backup: "False"
+      Owner: "Diamond"
+    subnetSelectorTerms:
+      - id: "subnet-089f9dea824896f5a"
+      - id: "subnet-0bd9e710b44446de4"
+      - id: "subnet-04c59ab838d738079"
+    securityGroupSelectorTerms:
+      - id: "sg-0ebe6a10d9c56df6e"
+    amiID: "ami-0ff1619e0e04695ea"
+    role: "Karpenter-dmnd-pkrb-dev-aps1-eks-20250605121953794800000005"
+    amiFamily: "AL2023"
+    blockDeviceMappings:
+      - deviceName: /dev/xvda
+        ebs:
+          volumeSize: 20Gi
+          volumeType: gp3
+          deleteOnTermination: true
+    userData: |-
+      #!/bin/bash
+      mkdir -p /consul-data
+      chmod -R 777 /consul-data

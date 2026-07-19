@@ -1,0 +1,13 @@
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::890742599351:role/dmnd-pkrb-nprod-aps1-role-alb-controller
+
+
+
+
+#helm install aws-load-balancer-controller eks/aws-load-balancer-controller \                                                    
+  -f values.yaml \
+  --namespace kube-system \
+  --set clusterName=dmnd-pkrb-nprod-aps1-eks

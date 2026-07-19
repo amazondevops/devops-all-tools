@@ -1,0 +1,59 @@
+{{- if .Values.authorizationPolicy }}
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ .Values.container.name }}
+  namespace: {{ .Values.env }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.container.name }}
+  action: {{ .Values.authorizationPolicy.action }}
+  rules:
+  {{- range .Values.authorizationPolicy.rules }}
+    - from:
+      - source:
+         remoteIpBlocks: {{ .SourceIP }}
+      to: 
+        {{- range .to }}
+        - operation: 
+            {{- if .hosts }}
+            hosts: {{ .hosts }}
+            {{- end }}
+            {{- if .methods }}
+            methods: {{ .methods }}
+            {{- end }}
+            {{- if .paths }}
+            paths: {{ .paths }}
+            {{- end }}
+        {{- end }}
+  {{- end }}
+{{- end}}
+
+---
+{{- if .Values.authorizationPolicy }}
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: {{ .Values.container.name }}
+  namespace: {{ .Values.env }}
+spec:
+  workloadSelector:
+    labels:
+      app: {{ .Values.container.name }}
+  configPatches:
+  - applyTo: NETWORK_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+    patch:
+      operation: MERGE
+      value:
+        typed_config:
+          '@type': >-
+            type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          xff_num_trusted_hops: 1
+{{- end}}

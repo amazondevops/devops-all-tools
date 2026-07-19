@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: istio-gateway-external-dev
+  namespace: default
+spec:
+  selector:
+    istio: external-dev
+  servers:
+  - hosts:
+    - '*'
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
+  - hosts:
+    - '*'
+    port:
+      name: https-443
+      number: 443
+      protocol: HTTP

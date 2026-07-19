@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: istio-internal-primary-alb
+  namespace: istio-system
+  annotations:
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:476114144457:certificate/bddface0-72cd-492f-8979-60b4ea6729a4
+    alb.ingress.kubernetes.io/group.name: istio-internal-alb-primary
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz/ready
+    alb.ingress.kubernetes.io/healthcheck-port: "31941"
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: istio-internal-primary-alb
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/subnets: subnet-05d05b14ea0a57d82,subnet-0643806a6348cd0c3,subnet-06a2313a08a8dc4a1
+    alb.ingress.kubernetes.io/tags: CostCenter=PokerB2B
+    alb.ingress.kubernetes.io/target-type: instance
+    kubernetes.io/ingress.class: alb
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: pkrb-gi-nprod-internal
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  - http:
+      paths:
+      - backend:
+          service:
+            name: pkrb-gi-nprod-internal
+            port:
+              number: 15021
+        path: /healthz/ready
+        pathType: Prefix
+

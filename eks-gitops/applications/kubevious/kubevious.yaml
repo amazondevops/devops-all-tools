@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubevious
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: git@bitbucket.org:junglee_games/dmnd-pkrb-gitops-nprod.git
+    targetRevision: HEAD
+    path: helm/charts/kubevious
+    helm:
+      valueFiles:
+      - ../../value-store/kubevious/kubevious-value.yaml 
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubevious
+
+  syncPolicy:
+    automated: 
+      prune: true 
+      selfHeal: false 
+      allowEmpty: false 
+    syncOptions:     
+    - Validate=false 
+    - CreateNamespace=true 
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    retry:
+      limit: 5 
+      backoff:
+        duration: 5s 
+        factor: 2 
+        maxDuration: 3m 
+
+

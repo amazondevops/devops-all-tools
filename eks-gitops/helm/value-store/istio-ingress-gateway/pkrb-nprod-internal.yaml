@@ -1,0 +1,74 @@
+# Name allows overriding the release name. Generally this should not be set
+name: "pkrb-dev-internal"
+# Revision declares which revision this gateway is a part of
+revision: ""
+
+replicaCount: 1
+
+rbac:
+  enabled: false
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  prometheus.io/port: "15020"
+  prometheus.io/scrape: "true"
+  prometheus.io/path: "/stats/prometheus"
+  inject.istio.io/templates: "gateway"
+  sidecar.istio.io/inject: "true"
+
+securityContext: ~
+containerSecurityContext: ~
+
+service:
+  # Type set to NodePort instead of LoadBalancer
+  type: NodePort
+  ports:
+  - name: status-port
+    port: 15021
+    protocol: TCP
+    targetPort: 15021
+    nodePort: 31941  # Matches the NodePort value from the current configuration
+  - name: http2
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+    nodePort: 32147  # Matches the NodePort value from the current configuration
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 8443
+    nodePort: 31677  # Matches the NodePort value from the current configuration
+  annotations: {}
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 2000m
+    memory: 1024Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+env: {}
+
+labels: {}
+
+annotations: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+networkGateway: ""
+

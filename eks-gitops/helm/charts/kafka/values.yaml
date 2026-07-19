@@ -1,0 +1,57 @@
+namespace: kafka
+serviceName: kafka-svc
+replicaCount: 3
+
+container:
+  image: doughgle/kafka-kraft
+  ports:
+    client: 9092
+    gossip: 9093
+  env:
+    REPLICAS: '3'
+    SERVICE: kafka-svc
+    SHARE_DIR: /mnt/kafka
+    CLUSTER_ID: bXktY2x1c3Rlci0xMjM0NQ==
+    DEFAULT_REPLICATION_FACTOR: '3'
+    DEFAULT_MIN_INSYNC_REPLICAS: '2'
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+volumeClaimTemplates:
+  accessModes: ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: key1
+            operator: In
+            values:
+              - value1
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 1
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - kafka-app
+          topologyKey: kubernetes.io/hostname
+
+service:
+  ports:
+    client:
+      port: 9092
+      targetPort: 9092
+      nodePort: 30092

@@ -1,0 +1,76 @@
+# replicaCount: 2
+# env: hzt-qa-1
+# service:
+#     type: NodePort
+#     port: 8080
+#     targetPort: 8080
+# container:
+#     name: carrom-connection-service
+#     image: 764106104586.dkr.ecr.ap-south-1.amazonaws.com/hzt-ups-service:qa-08a618fb3650e2273fe9105bf98302d7a66e7377
+#     env:
+#     - name: CONSUL_IPADDR
+#       valueFrom:
+#         fieldRef:
+#           fieldPath: status.hostIP
+#     - name: CONSUL_HTTP_ADDR
+#       value: "$(CONSUL_IPADDR):8500"
+#     - name: CONSUL_HTTP_TOKEN
+#       valueFrom:
+#         secretKeyRef:
+#           name: hzt-qa-1-consul-app-token
+#           key: token
+#     - name: env
+#       value: hzt-qa-1
+#     resources:         
+#       soft:
+#         cpu: 250m
+#         memory: 2G
+#       hard:
+#         cpu: 500m 
+#         memory: 4G
+#     command: [ "./carrom-connection-service" ]
+        
+# rollout:
+#     autoPromote: false
+#     canaryTraffic: 0
+#     stableTraffic: 100
+
+# hpa:
+#   minReplica: 1
+#   maxReplica: 1
+#   cpuUtilization: 70
+
+# virtualservice:
+#     domains:
+#     - kubetest.howzatfantasy.com
+#     - kubetest.pfantasy.com
+#     - kubetest.howzat.com
+#     gateway: "default/default-gateway"
+#     routeName: primary
+
+# serviceAccount:
+#     name: hzt-common-iam-access-sa
+
+# canarySteps:
+#   enabled: false
+#   steps:
+#   - setWeight: 20
+#   - pause: {}
+
+# livenessProbe:
+#     enabled: false
+#     tcpSocket:
+#       port: 8080
+#     initialDelaySeconds: 40
+#     periodSeconds: 5
+#     successThreshold: 1
+#     failureThreshold: 2
+
+# readinessProbe:
+#     enabled: false
+#     tcpSocket:
+#       port: 8080
+#     initialDelaySeconds: 40
+#     periodSeconds: 5
+#     successThreshold: 1
+#     failureThreshold: 2

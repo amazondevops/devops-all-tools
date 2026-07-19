@@ -1,0 +1,153 @@
+# # Namespace configuration
+# namespace: dev-1
+
+# # App configuration
+# app:
+#   name: uae
+#   environment: dev-1
+
+# # Number of pod replicas
+# replicaCount: 1
+
+# # Container image details
+# image:
+#   registry: 325440212115.dkr.ecr.ap-south-1.amazonaws.com
+#   repository: nginx
+#   pullPolicy: Always
+#   tag: "latest"
+
+# # Prometheus annotations for monitoring
+# podAnnotations:
+#   prometheus.io/path: /metrics
+#   prometheus.io/port: '8003'
+#   prometheus.io/scrape: 'true'
+
+# command: ["pwd"]
+
+# env:
+#   - name: DEPLOYMENT_ENV
+#     value: "dev"
+# # Consul HTTP port k8s API using the pod's hostIP.
+#   - name: CONSUL_IPADDR
+#     valueFrom:
+#       fieldRef:
+#         apiVersion: v1
+#         fieldPath: status.hostIP
+# # Consul HTTP port
+#   - name: CONSUL_HTTP_PORT
+#     value: "8500"  # Make sure the value is enclosed in quotes
+# # Consul API HTTP address
+#   - name: CONSUL_HTTP_ADDR
+#     value: "$(CONSUL_IPADDR):$(CONSUL_HTTP_PORT)"
+# # Consul HTTP token (from secret)
+#   - name: CONSUL_HTTP_TOKEN
+#     valueFrom:
+#       secretKeyRef:
+#         key: token
+#         name: "secret-name"
+
+
+# # container port configuration
+# container:
+#   ports:
+#     # port for the application
+#     - name: uae
+#       containerPort: 80
+#       protocol: TCP
+#     # port for the consul-client
+#     - containerPort: 8108
+#       name: consulport
+#       protocol: TCP
+#     - name: uae2
+#       port: 70
+#       protocol: TCP
+#       targetPort: 70
+
+# # Service configuration
+# service:
+#   type: ClusterIP
+#   ports:
+#     # Service port for the application
+#     - name: uae
+#       port: 80
+#       protocol: TCP
+#       targetPort: 80
+#     - name: uae2
+#       port: 70
+#       protocol: TCP
+#       targetPort: 70
+# # Resource limits and requests for pods
+# resources:
+#   limits:
+#     cpu: 500m
+#     memory: 512Mi
+#   requests:
+#     cpu: 100m
+#     memory: 128Mi
+
+# # Liveness probe configuration
+# livenessProbe:
+#   tcpSocket:
+#     port: 80
+#   initialDelaySeconds: 5
+#   periodSeconds: 20
+#   successThreshold: 1
+#   failureThreshold: 2
+
+# # Readiness probe configuration
+# readinessProbe:
+#   tcpSocket:
+#     port: 80
+#   initialDelaySeconds: 10
+#   periodSeconds: 15
+#   successThreshold: 1
+#   failureThreshold: 3
+
+# # Node selector for pod placement
+# nodeSelector:
+#   o11y: "true"
+#   env: dev-1
+#   arch: mac
+
+# # Tolerations to allow pod placement on specific nodes
+# tolerations:
+#   - key: workload
+#     operator: Equal
+#     value: "true"
+#     effect: NoSchedule
+
+
+# # Horizontal Pod Autoscaling configuration
+# autoscaling:
+#   enabled: false
+#   minReplicas: 1
+#   maxReplicas: 5
+#   targetCPUUtilizationPercentage: 60
+#   # targetMemoryUtilizationPercentage: 60
+
+
+# affinity: {}
+
+# imagePullSecrets: []
+# nameOverride: ""
+# fullnameOverride: ""
+
+# # serviceAccount:
+#   # Specifies whether a service account should be created
+#   # create: false
+#   # Annotations to add to the service account
+#   # annotations: {}
+#   # The name of the service account to use.
+#   # If not set and create is true, a name is generated using the fullname template
+#   # name: ""
+
+# podSecurityContext: {}
+#   # fsGroup: 2000
+
+# securityContext: {}
+#   # capabilities:
+#   #   drop:
+#   #   - ALL
+#   # readOnlyRootFilesystem: true
+#   # runAsNonRoot: true
+#   # runAsUser: 1000

@@ -1,0 +1,72 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ .Values.container.name }}-vsvc
+spec:
+  gateways:
+  {{- range .Values.virtualservice.gateways }}
+  - {{ . }}
+  {{- end }}
+  - mesh
+  hosts:
+  {{- range .Values.virtualservice.domains }}
+  - {{ . }}
+  {{- end }}
+  - {{ .Values.container.name }}.{{ .Values.hostedzone }}
+  - {{ .Values.container.name }}-svc.{{ .Values.env }}.svc.cluster.local
+  http:
+  - name: {{ .Values.virtualservice.pathbasedrouting_name }}  
+    match:
+    - uri:
+        prefix: {{ .Values.virtualservice.pathbasedrouting_prefix }}  
+    route:
+    - destination:
+        host: {{ .Values.virtualservice.pathbasedrouting_secondary_host }}-svc
+        subset: stable  
+      weight: {{ .Values.rollout.stableTraffic }}
+    - destination:
+        host: {{ .Values.virtualservice.pathbasedrouting_secondary_host }}-svc
+        subset: canary
+      weight: {{ .Values.rollout.canaryTraffic }}
+
+  - name: {{ .Values.virtualservice.routeName }}  
+    route:
+    - destination:
+        host: {{ .Values.virtualservice.pathbasedrouting_primary_host }}-svc
+        subset: stable  
+      weight: {{ .Values.rollout.stableTraffic }}
+    - destination:
+        host: {{ .Values.virtualservice.pathbasedrouting_primary_host }}-svc
+        subset: canary
+      weight: {{ .Values.rollout.canaryTraffic }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ .Values.container.name }}-canary-vsvc
+spec:
+  gateways:
+  - mesh
+  {{- range .Values.virtualservice.gateways }}
+  - {{ . }}
+  {{- end }}
+  hosts:
+  {{- range .Values.virtualservice.domains }}
+  - canary-{{ . }}
+  {{- end }}
+  - canary-{{ .Values.container.name }}.{{ .Values.hostedzone }}
+  http:
+  - name: {{ .Values.virtualservice.pathbasedrouting_name }}  
+    match:
+    - uri:
+        prefix: {{ .Values.virtualservice.pathbasedrouting_prefix }}  
+    route:
+    - destination:
+        host: {{ .Values.virtualservice.pathbasedrouting_secondary_host }}-svc
+        subset: canary
+
+  - name: {{ .Values.virtualservice.routeName }}  
+    route:
+    - destination:
+        host: {{ .Values.virtualservice.pathbasedrouting_primary_host }}-svc
+        subset: canary

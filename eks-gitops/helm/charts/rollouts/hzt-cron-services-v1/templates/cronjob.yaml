@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  namespace: {{ .Values.env }}
+  name: {{ .Values.container.name }}
+spec:
+  schedule: "{{ .Values.schedule }}"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+          labels:
+            app: {{ .Values.container.name }} 
+        spec:  
+          {{- if .Values.tolerations }}
+          tolerations: {{- include "render" (dict "value" .Values.tolerations "context" .) | nindent 10 }}
+          {{- end }}   
+          {{- if .Values.affinity }}
+          affinity: {{- include "render" (dict "value" .Values.affinity "context" .) | nindent 12 }}
+          {{- end }}
+          containers:
+          - name: {{ .Values.container.name }}
+            image: {{ .Values.container.image }}
+            {{- if .Values.container.env }}
+            env: {{- include "render" (dict "value" .Values.container.env "context" .) | nindent 12 }}
+            {{- end }}
+            resources:
+              requests:
+                cpu: {{ .Values.container.resources.requests.cpu }}
+                memory: {{ .Values.container.resources.requests.memory }}
+              limits:
+                cpu: {{ .Values.container.resources.limits.cpu }}
+                memory: {{ .Values.container.resources.limits.memory }}
+            imagePullPolicy: IfNotPresent
+            {{- if .Values.container.command }}
+            command: {{ .Values.container.command | toJson }}
+            {{- end }}
+          restartPolicy: {{ .Values.restartPolicy }}

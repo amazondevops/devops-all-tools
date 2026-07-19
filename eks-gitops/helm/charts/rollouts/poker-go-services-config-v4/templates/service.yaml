@@ -1,0 +1,39 @@
+{{- if .Values.service.create }}
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: {{ .Values.container.name }}
+    env: {{ .Values.env }}
+    app.kubernetes.io/managed-by: Helm
+  name: {{ .Values.container.name }}-svc
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: {{ .Values.service.targetPort }}
+    name: http-{{ .Values.container.name }}
+  selector:
+    app-svc: {{ .Values.container.name }}-svc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: {{ .Values.container.name }}
+    env: {{ .Values.env }}
+    app.kubernetes.io/managed-by: Helm
+  name: {{ .Values.container.name }}-sidecar-svc
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: {{ .Values.service.sideCarPort }}
+    name: http-{{ .Values.container.sideCarName }}
+  selector:
+    app-svc: {{ .Values.container.name }}-svc
+{{- end }}

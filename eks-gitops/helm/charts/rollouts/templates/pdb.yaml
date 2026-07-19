@@ -1,0 +1,11 @@
+{{- if .Values.pdb }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Values.container.name }}-pdb
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app-svc: {{ .Values.container.name }}-svc
+{{- end }}

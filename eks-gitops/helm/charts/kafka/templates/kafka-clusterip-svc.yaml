@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.clusteripService.name }}
+  labels:
+    app: {{ .Values.clusteripService.labels.app }}
+spec:
+  type: {{ .Values.clusteripService.type }}
+  ports:
+    - name: '9092'
+      port: {{ .Values.clusteripService.port }}
+      protocol: TCP
+      targetPort: {{ .Values.clusteripService.targetPort }}
+  selector:
+    app: {{ .Values.clusteripService.labels.app }}
+

@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: istio-external-primary-alb
+  namespace: istio-system
+  annotations:
+    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:890742599351:certificate/06486add-fb0a-4a57-9f30-9e6e00b400f7
+    alb.ingress.kubernetes.io/group.name: istio-external-alb-primary
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz/ready
+    alb.ingress.kubernetes.io/healthcheck-port: "31941"
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: istio-external-primary-alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/subnets: subnet-035447b8524ea81e8,subnet-0f69791237ecffdeb,subnet-0221bc17138fad27d
+    alb.ingress.kubernetes.io/tags: CostCenter=PokerB2B
+    alb.ingress.kubernetes.io/target-type: instance
+    kubernetes.io/ingress.class: alb
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: pkrb-dev-external
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  - http:
+      paths:
+      - backend:
+          service:
+            name: pkrb-dev-external
+            port:
+              number: 15021
+        path: /healthz/ready
+        pathType: Prefix
+

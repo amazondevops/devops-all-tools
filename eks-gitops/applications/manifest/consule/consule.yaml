@@ -1,0 +1,50 @@
+client:
+  affinity: "nodeAffinity:\n  requiredDuringSchedulingIgnoredDuringExecution:\n    nodeSelectorTerms:\n
+    \   - matchExpressions:\n      - key: provisoner\n        operator: In\n
+    \       values:\n        - karpenter-pkrb-dev\n        - karpenter-pkrb-qa\n"
+  annotations: |
+    fluentbit.io/exclude: "true"
+    sidecar.istio.io/inject: "false"
+  dataDirectoryHostPath: /consul-data
+  enabled: "true"
+  exposeGossipPorts: true
+  extraConfig: "{\n  \"use_streaming_backend\": false,\n  \"log_level\": \"DEBUG\",\n
+    \  \"skip_leave_on_interrupt\": true,\n   \"leave_on_terminate\": false,\n   \"acl\":
+    {\n      \"enabled\": true,\n      \"default_policy\": \"deny\",\n      \"enable_token_persistence\":
+    true,\n       \"tokens\": {\n         \"default\": \"6a20227e-afea-69c3-f960-a3d6646ed584\"\n
+    \      }\n    }  \n}\n"
+  grpc: true
+  hostNetwork: true
+  join:
+  - provider=aws region=ap-south-1 tag_key=poker-non-prod-consul-server tag_value=auto-join
+  resources:
+    limits:
+      cpu: 200m
+      memory: 300Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  securityContext:
+    fsGroup: 1007
+    runAsGroup: 1007
+    runAsNonRoot: true
+    runAsUser: 1007
+  tls:
+    enabled: false
+  tolerations: |
+    - key: scheduler
+      value: "karpenter"
+      effect: NoSchedule
+connectInject:
+  enabled: false
+externalServers:
+  enabled: false
+  hosts:
+  - provider=aws region=ap-south-1 tag_key=poker-non-prod-consul-server tag_value=auto-join
+  httpsPort: 8500
+global:
+  datacenter: ap-south-1
+  enabled: false
+  image: 890742599351.dkr.ecr.ap-south-1.amazonaws.com/devopsimages:consul-1.16.1
+server:
+  enabled: false

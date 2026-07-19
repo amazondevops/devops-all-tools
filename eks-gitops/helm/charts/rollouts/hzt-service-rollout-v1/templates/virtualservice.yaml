@@ -1,0 +1,51 @@
+{{ if not .Values.multipleServices }}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ .Values.container.name }}-vsvc
+spec:
+  gateways:
+  {{- range .Values.virtualservice.gateways }}
+  - {{ . }}
+  {{- end }}
+  - mesh
+  hosts:
+  {{- range .Values.virtualservice.domains }}
+  - {{ . }}
+  {{- end }}
+  - {{ .Values.container.name }}.dmnd-{{ .Values.env }}.int
+  - {{ .Values.container.name }}-svc.{{ .Values.env }}.svc.cluster.local
+  http:
+  - name: {{ .Values.virtualservice.routeName }}  
+    route:
+    - destination:
+        host: {{ .Values.container.name }}-svc
+        subset: stable  
+      weight: {{ .Values.rollout.stableTraffic }}
+    - destination:
+        host: {{ .Values.container.name }}-svc
+        subset: canary
+      weight: {{ .Values.rollout.canaryTraffic }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ .Values.container.name }}-canary-vsvc
+spec:
+  gateways:
+  - mesh
+  {{- range .Values.virtualservice.gateways }}
+  - {{ . }}
+  {{- end }}
+  hosts:
+  {{- range .Values.virtualservice.domains }}
+  - canary-{{ . }}
+  {{- end }}
+  - canary-{{ .Values.container.name }}.{{ .Values.hostedzone }}{{ .Values.env }}.int
+  http:
+  - name: {{ .Values.virtualservice.routeName }}  
+    route:
+    - destination:
+        host: {{ .Values.container.name }}-svc
+        subset: canary
+{{- end }}

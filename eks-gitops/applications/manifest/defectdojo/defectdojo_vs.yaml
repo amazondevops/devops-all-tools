@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: defectdojo-vsvc
+  namespace: defectdojo
+spec:
+  gateways:
+  - default/pkrb-nprod-gateway-internal
+  hosts:
+  - defectdojo.dmnd-pkrb-dev-1.int
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: defectdojo-django.defectdojo.svc.cluster.local
+        port:
+          number: 80
+      headers:
+        request:
+          set:
+            host: defectdojo.dmnd-pkrb-dev-1.int

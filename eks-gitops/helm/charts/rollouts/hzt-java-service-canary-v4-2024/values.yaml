@@ -1,0 +1,47 @@
+
+replicaCount: 2
+env: hzt-qa-1
+service:
+    type: NodePort
+    port: 8080
+    targetPort: 8080
+container:
+    name: ups
+    image: 764106104586.dkr.ecr.ap-south-1.amazonaws.com/hzt-ups-service:qa-08a618fb3650e2273fe9105bf98302d7a66e7377
+    env:
+    - name: JAR_NAME
+      value: target/user_profile_service.jar
+    - name: ENV_NAME
+      value: stage
+    - name: JAVA_OPTS
+      value: "-Xms512M -Xmx1024M -server -Dserver.host=0.0.0.0 -Dserver.port=8080 -Dspring.config.location=application.yml -Dspring.profiles.active=qa,common"
+    resources:         
+      # soft:
+      #   cpu: 250m
+      #   memory: 2G
+      # hard:
+      #   cpu: 500m 
+      #   memory: 4G
+volumeMounts:
+  runfile:
+    mountPath: /home/dockeruser/run.sh
+    subPath: run.sh
+
+volumes:
+  runfile: 
+    name: runjavash
+
+        
+rollout:
+    autoPromote: false
+    canaryTraffic: 0
+    stableTraffic: 100
+
+virtualservice:
+    # domains:
+    # - kubetest.howzatfantasy.com
+    # - kubetest.pfantasy.com
+    # - kubetest.howzat.com
+    gateway: "default/default-gateway"
+    routeName: primary
+

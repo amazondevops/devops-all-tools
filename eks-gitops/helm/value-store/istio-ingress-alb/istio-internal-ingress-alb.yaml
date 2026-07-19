@@ -1,0 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: istio-internal-primary-alb-dev
+  namespace: istio-system
+  annotations:
+    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/group.name: istio-internal-alb-primary-dev
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz/ready
+    alb.ingress.kubernetes.io/healthcheck-port: "31941"
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/load-balancer-name: istio-internal-primary-alb-dev
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/subnets: subnet-089f9dea824896f5a,subnet-04c59ab838d738079,subnet-0bd9e710b44446de4
+    alb.ingress.kubernetes.io/tags: CostCenter=PokerB2B
+    alb.ingress.kubernetes.io/target-type: instance
+    kubernetes.io/ingress.class: alb
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service: 
+            name: istio-internal-dev
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  - http:
+      paths:
+      - backend:
+          service:
+            name: istio-internal-dev
+            port:
+              number: 15021
+        path: /healthz/ready
+        pathType: Prefix
+

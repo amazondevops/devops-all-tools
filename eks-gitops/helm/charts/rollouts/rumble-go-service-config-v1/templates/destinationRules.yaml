@@ -1,0 +1,16 @@
+{{- if .Values.destinationrule.create }}
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: {{ .Values.container.name }}-dstnrule
+  namespace: {{ .Values.env }}
+spec:
+  host: {{ .Values.container.name }}-svc
+  subsets:
+  - name: canary   
+    labels:        
+      app-svc: {{ .Values.container.name }}-svc
+  - name: stable   
+    labels:        
+      app-svc: {{ .Values.container.name }}-svc
+{{- end }}

@@ -1,0 +1,9 @@
+#env: dev
+#schedule: '"6 * * * *"'
+#restartPolicy: OnFailure
+#image:
+#  repository: 
+#  tag: 
+#  pullPolicy: IfNotPresent 
+#service: 
+#  internalPort: 8028

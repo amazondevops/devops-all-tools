@@ -1,0 +1,52 @@
+{{- range $application := .Values.applications }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ $application.name }}-service-{{ $application.namespace }}
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ $application.namespace }}
+  {{- if $application.useSingleRepo }}
+  source:
+    repoURL: {{ $application.repoURL }}
+    path: {{ $application.chart }}
+    targetRevision: {{ $application.repoBranch }}
+    helm:
+      valueFiles:
+      - {{ $application.valueFile }}
+{{- else }}
+  sources:
+  - repoURL: {{ $application.configRepoURL }}
+    targetRevision: {{ $application.configRepoBranch }}
+    ref: values
+  - repoURL: {{ $application.repoURL }}
+    path: {{ $application.chart }}
+    targetRevision: {{ $application.repoBranch }}
+    helm:
+      valueFiles:
+      - $values/{{ $application.configValueFile }}
+      - {{ $application.valueFile }}
+{{- end }}
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: {{ $application.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - Validate=true
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=false
+      - Replace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}

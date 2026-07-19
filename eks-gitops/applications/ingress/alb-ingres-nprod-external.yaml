@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alb-ingress-nprod-external
+  namespace: argocd
+spec:
+  destination:
+    name: ''
+    namespace: istio-system
+    server: 'https://kubernetes.default.svc'
+  source:
+    path: applications/manifest/ingress
+    repoURL: 'git@bitbucket.org:junglee_games/dmnd-pkrb-gitops-nprod.git'
+    targetRevision: HEAD
+    directory:
+      include: alb-ingres-nprod-external.yaml
+  project: istio
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true

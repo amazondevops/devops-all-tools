@@ -1,0 +1,118 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  labels:
+    app: {{ .Values.container.name }}
+    env: {{ .Values.env }}
+  name: {{ .Values.container.name }}
+spec:
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit | default 4 }}
+# {{- if not .Values.hpa.enabled }}
+#   replicas: 0
+# {{- end }}
+  selector:
+    matchLabels:
+      app: {{ .Values.container.name }}
+      env: {{ .Values.env }}
+  strategy:
+    canary:
+      trafficRouting:
+        istio:
+          virtualService:
+            name: {{ .Values.container.name }}-vsvc
+            routes:
+            - {{ .Values.virtualservice.routeName }}
+          destinationRule:
+            name: {{ .Values.container.name }}-dstnrule
+            canarySubsetName: canary 
+            stableSubsetName: stable 
+
+  {{- if .Values.canarySteps.enabled }}
+  {{- include "render" (dict "value" (omit .Values.canarySteps "enabled") "context" $) | nindent 6 }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.container.name }}
+        env: {{ .Values.env }}
+        app-svc: {{ .Values.container.name }}-svc
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.container.annotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.container.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.container.terminationGracePeriodSeconds }}
+      {{- end }}
+      serviceAccountName: {{ .Values.serviceAccount.name | default (printf "%s-sa" .Values.container.name) }}
+      containers:
+      - image: {{ .Values.container.image }}
+        imagePullPolicy: Always
+        name: {{ .Values.container.name }}
+        {{- if .Values.container.command }}
+        command: {{ .Values.container.command | toJson }}
+        {{- end }}
+        {{- if .Values.container.env }}
+        env: {{- include "render" (dict "value" .Values.container.env "context" .) | nindent 10 }}
+        {{- end }}
+        resources: 
+          {{- if .Values.container.resources.soft }}        
+          requests:
+            cpu: {{ .Values.container.resources.soft.cpu }}
+            memory: {{ .Values.container.resources.soft.memory }}
+          {{- end }}
+          {{- if .Values.container.resources.hard }}
+          limits:
+            cpu: {{ .Values.container.resources.hard.cpu }}
+            memory: {{ .Values.container.resources.hard.memory }}
+          {{- end }}
+        {{- with .Values.volumeMounts }}
+        volumeMounts:
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          {{- if not .Values.livenessProbe.path }}
+          tcpSocket:
+            port: {{ .Values.livenessProbe.port }}
+          {{- end }}
+          {{- if .Values.livenessProbe.path }}
+          httpGet:
+            port: {{ .Values.livenessProbe.port }}
+            path: {{ .Values.livenessProbe.path }}
+          {{- end }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+        {{- end }}
+        {{- if .Values.readinessProbe.enabled }}
+        readinessProbe:
+          {{- if not .Values.readinessProbe.path }}
+          tcpSocket:
+            port: {{ .Values.readinessProbe.port }}
+          {{- end }}
+          {{- if .Values.readinessProbe.path }}
+          httpGet:
+            path: {{ .Values.readinessProbe.path }}
+            port: {{ .Values.readinessProbe.port }}
+          {{- end }}
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+        {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "render" (dict "value" .Values.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: {{- include "render" (dict "value" .Values.affinity "context" .) | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+
+
+        
