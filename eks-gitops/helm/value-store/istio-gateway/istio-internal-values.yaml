@@ -110,10 +110,10 @@ _internal_defaults_do_not_set:
 
   nodeSelector: {}
 
-  tolerations: 
-    - key: k8s-app
-      value: kube-dns
-      effect: PreferNoSchedule
+  # tolerations: 
+  #   - key: k8s-app
+  #     value: kube-dns
+  #     effect: PreferNoSchedule
 
   topologySpreadConstraints: []
 
