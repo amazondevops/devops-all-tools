@@ -3,6 +3,15 @@ resource "aws_eks_cluster" "poc" {
   version  = var.cluster_version
   role_arn = aws_iam_role.cluster.arn
 
+  # Required for EKS access entries (e.g. the Karpenter node role in karpenter.tf).
+  # API_AND_CONFIG_MAP keeps the existing aws-auth ConfigMap working too.
+  # bootstrap_cluster_creator_admin_permissions is pinned to its current value
+  # (true) because it is ForceNew - omitting it would replace the whole cluster.
+  access_config {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = true
+  }
+
   vpc_config {
     subnet_ids              = var.private_subnet_ids
     endpoint_private_access = true

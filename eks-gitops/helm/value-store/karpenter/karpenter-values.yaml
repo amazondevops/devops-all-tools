@@ -20,10 +20,10 @@ serviceAccount:
   create: true
   # -- The name of the ServiceAccount to use.
   # If not set and create is true, a name is generated using the fullname template.
-  name: "karpenter-dev"
+  name: "karpenter"
   # -- Additional annotations for the ServiceAccount.
   annotations: 
-      eks.amazonaws.com/role-arn: "arn:aws:iam::890742599351:role/KarpenterController-20250605121953795300000006"
+      eks.amazonaws.com/role-arn: "arn:aws:iam::831926617181:role/KarpenterController-poc-eks"
 # -- Specifies additional rules for the core ClusterRole.
 additionalClusterRoleRules: []
 serviceMonitor:
@@ -78,30 +78,30 @@ initContainers: {}
 nodeSelector:
   kubernetes.io/os: linux
 # -- Affinity rules for scheduling the pod. If an explicit label selector is not provided for pod affinity or pod anti-affinity one will be created from the pod selector labels.
-affinity:
-  nodeAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: karpenter.sh/nodepool
-              operator: DoesNotExist
-            - key: default
-              operator: In
-              values: 
-              - apps
-  podAntiAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      - topologyKey: "kubernetes.io/hostname"
+# affinity:
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#         - matchExpressions:
+#             - key: karpenter.sh/nodepool
+#               operator: DoesNotExist
+#             - key: default
+#               operator: In
+#               values: 
+#               - apps
+#   podAntiAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       - topologyKey: "kubernetes.io/hostname"
 # -- Topology spread constraints to increase the controller resilience by distributing pods across the cluster zones. If an explicit label selector is not provided one will be created from the pod selector labels.
 topologySpreadConstraints:
   - maxSkew: 1
     topologyKey: topology.kubernetes.io/zone
     whenUnsatisfiable: DoNotSchedule
 # -- Tolerations to allow the pod to be scheduled to nodes with taints.
-tolerations:
-  - key: k8s-app
-    value: kube-dns
-    effect: PreferNoSchedule
+# tolerations:
+#   - key: k8s-app
+#     value: kube-dns
+#     effect: PreferNoSchedule
 # -- Additional volumes for the pod.
 extraVolumes: []
 # - name: aws-iam-token
@@ -178,9 +178,9 @@ settings:
   # -- Cluster CA bundle for TLS configuration of provisioned nodes. If not set, this is taken from the controller's TLS configuration for the API server.
   clusterCABundle: ""
   # -- Cluster name.
-  clusterName: "dmnd-pkrb-dev-aps1-eks"
+  clusterName: "poc-eks"
   # -- Cluster endpoint. If not set, will be discovered during startup (EKS only)
-  clusterEndpoint: "https://36089BC1C799C2C3B658AA804AE12953.yl4.ap-south-1.eks.amazonaws.com"
+  clusterEndpoint: "https://8730CED5E5ACAA34E1BDFE1992567B62.yl4.eu-west-1.eks.amazonaws.com"
   # -- If true then assume we can't reach AWS services which don't have a VPC endpoint
   # This also has the effect of disabling look-ups to the AWS pricing endpoint
   isolatedVPC: false
@@ -191,10 +191,7 @@ settings:
   # -- Interruption queue is the name of the SQS queue used for processing interruption events from EC2
   # Interruption handling is disabled if not specified. Enabling interruption handling may
   # require additional permissions on the controller service account. Additional permissions are outlined in the docs.
-  interruptionQueue: 
-    enabled: true
-    queueName: "Karpenter-dmnd-pkrb-dev-aps1-eks"
-    queueARN: "https://sqs.ap-south-1.amazonaws.com/890742599351/Karpenter-dmnd-pkrb-dev-aps1-eks"
+  interruptionQueue: "Karpenter-poc-eks"
   # -- Reserved ENIs are not included in the calculations for max-pods or kube-reserved
   # This is most often used in the VPC CNI custom networking setup https://docs.aws.amazon.com/eks/latest/userguide/cni-custom-network.html
   reservedENIs: "0"
